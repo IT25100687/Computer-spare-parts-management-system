@@ -1,0 +1,9 @@
+spareparts/model/OrderItem.class
+spareparts/SparepartsApplication.class
+spareparts/repository/SaleRepository.class
+spareparts/model/Order.class
+spareparts/model/Sale.class
+spareparts/repository/OrderRepository.class
+spareparts/service/OrderService.class
+spareparts/controller/OrderController.class
+spareparts/repository/OrderItemRepository.class

@@ -1,0 +1,11 @@
+### Create a new order
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "customerId": 101,
+  "totalAmount": 1500.50
+}
+
+### Get all orders (to see the one you just created)
+GET http://localhost:8080/api/orders
