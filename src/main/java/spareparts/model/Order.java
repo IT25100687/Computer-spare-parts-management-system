@@ -12,24 +12,27 @@ public class Order {
     private Long orderId;
 
     private Long customerId;
-    private LocalDateTime orderDate;
-    private String orderStatus; // Pending, Confirmed, Processing, Completed, Cancelled
+    private Long sparePartId;
+    private Integer quantity;
+    private Double unitPrice;
     private Double totalAmount;
+    private String orderStatus; // Pending, Processing, Completed, Cancelled
+    private LocalDateTime orderDate;
 
-    // Default Constructor
     public Order() {
     }
 
-    // All-Args Constructor
-    public Order(Long orderId, Long customerId, LocalDateTime orderDate, String orderStatus, Double totalAmount) {
+    public Order(Long orderId, Long customerId, Long sparePartId, Integer quantity, Double unitPrice, Double totalAmount, String orderStatus, LocalDateTime orderDate) {
         this.orderId = orderId;
         this.customerId = customerId;
-        this.orderDate = orderDate;
-        this.orderStatus = orderStatus;
+        this.sparePartId = sparePartId;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
         this.totalAmount = totalAmount;
+        this.orderStatus = orderStatus;
+        this.orderDate = orderDate;
     }
 
-    // Getters and Setters
     public Long getOrderId() {
         return orderId;
     }
@@ -46,12 +49,36 @@ public class Order {
         this.customerId = customerId;
     }
 
-    public LocalDateTime getOrderDate() {
-        return orderDate;
+    public Long getSparePartId() {
+        return sparePartId;
     }
 
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
+    public void setSparePartId(Long sparePartId) {
+        this.sparePartId = sparePartId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public String getOrderStatus() {
@@ -62,11 +89,11 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
+    public LocalDateTime getOrderDate() {
+        return orderDate;
     }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
     }
 }

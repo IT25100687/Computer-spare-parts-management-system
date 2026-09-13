@@ -57,7 +57,7 @@ public class Sale {
         return saleDate;
     }
 
-    public void setOrderDate(LocalDateTime saleDate) {
+    public void setSaleDate(LocalDateTime saleDate) {
         this.saleDate = saleDate;
     }
 

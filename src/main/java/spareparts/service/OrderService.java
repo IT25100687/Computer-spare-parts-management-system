@@ -22,36 +22,80 @@ public class OrderService {
         this.saleRepository = saleRepository;
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    // --- CREATE ORDER ---
+    public Order createOrder(Order order) {
+        if (order.getOrderDate() == null) {
+            order.setOrderDate(LocalDateTime.now());
+        }
+        if (order.getOrderStatus() == null || order.getOrderStatus().isEmpty()) {
+            order.setOrderStatus("Pending");
+        }
+        if (order.getQuantity() != null && order.getUnitPrice() != null && (order.getTotalAmount() == null || order.getTotalAmount() == 0)) {
+            order.setTotalAmount(order.getQuantity() * order.getUnitPrice());
+        }
+        return orderRepository.save(order);
     }
 
-    public Order createOrder(Order order) {
-        order.setOrderStatus("Pending");
-        return orderRepository.save(order);
+    // --- READ ORDERS ---
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 
     public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElse(null);
     }
 
-    // NEW LOGIC: Complete the order and generate a Sale (Invoice)
-    public Sale completeOrderAndCreateSale(Long orderId, String paymentStatus) {
-        // 1. Find the order
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+    // --- UPDATE ORDER ---
+    public Order updateOrder(Long id, Order orderDetails) {
+        Order existing = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        if (orderDetails.getCustomerId() != null) existing.setCustomerId(orderDetails.getCustomerId());
+        if (orderDetails.getSparePartId() != null) existing.setSparePartId(orderDetails.getSparePartId());
+        if (orderDetails.getQuantity() != null) existing.setQuantity(orderDetails.getQuantity());
+        if (orderDetails.getUnitPrice() != null) existing.setUnitPrice(orderDetails.getUnitPrice());
+        if (orderDetails.getTotalAmount() != null) existing.setTotalAmount(orderDetails.getTotalAmount());
+        if (orderDetails.getOrderStatus() != null) existing.setOrderStatus(orderDetails.getOrderStatus());
+        return orderRepository.save(existing);
+    }
 
-        // 2. Mark order as completed
+    // --- DELETE / CANCEL ORDER ---
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+    }
+
+    // --- COMPLETE ORDER & GENERATE SALE ---
+    public Sale completeOrderAndCreateSale(Long orderId, String paymentStatus) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         order.setOrderStatus("Completed");
         orderRepository.save(order);
 
-        // 3. Create the official Sale record
         Sale sale = new Sale();
         sale.setOrderId(order.getOrderId());
         sale.setCustomerId(order.getCustomerId());
         sale.setSaleDate(LocalDateTime.now());
-        sale.setPaymentStatus(paymentStatus);
-        sale.setInvoiceNumber("INV-" + System.currentTimeMillis()); // Generate a basic invoice number
+        sale.setPaymentStatus(paymentStatus != null ? paymentStatus : "Paid");
+        sale.setInvoiceNumber("INV-" + System.currentTimeMillis());
 
         return saleRepository.save(sale);
+    }
+
+    // --- READ SALES ---
+    public List<Sale> getAllSales() {
+        return saleRepository.findAll();
+    }
+
+    public Sale getSaleById(Long id) {
+        return saleRepository.findById(id).orElse(null);
+    }
+
+    // --- UPDATE SALE PAYMENT STATUS ---
+    public Sale updateSaleStatus(Long id, String paymentStatus) {
+        Sale sale = saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
+        sale.setPaymentStatus(paymentStatus);
+        return saleRepository.save(sale);
+    }
+
+    // --- DELETE / CANCEL SALE ---
+    public void deleteSale(Long id) {
+        saleRepository.deleteById(id);
     }
 }
