@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - Spare Parts System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background-color: #0f172a;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-ok { background: #dcfce7; color: #166534; }
+        .badge-low { background: #fee2e2; color: #991b1b; }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<div class="navbar">
+    <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
+    <div class="navbar-nav">
+        <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
+        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/inventory.html" class="nav-link active">📦 Inventory</a>
+        <a href="/customer.html" class="nav-link">👥 Customers</a>
+        <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
+        <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>📦 Inventory Management (Stock & Movements)</h1>
+    </div>
+
+    <!-- RECORD STOCK MOVEMENT FORM (CREATE) -->
+    <div class="card">
+        <h2>📥 Record Stock Movement (Stock-In / Stock-Out)</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="sparePartId">Spare Part ID</label>
+                <input type="number" id="sparePartId" placeholder="e.g. 501" required>
+            </div>
+            <div class="form-group">
+                <label for="stockInQuantity">Stock-In Quantity (Received)</label>
+                <input type="number" id="stockInQuantity" placeholder="e.g. 50" value="0">
+            </div>
+            <div class="form-group">
+                <label for="stockOutQuantity">Stock-Out Quantity (Issued)</label>
+                <input type="number" id="stockOutQuantity" placeholder="e.g. 5" value="0">
+            </div>
+            <div class="form-group">
+                <label for="currentQuantity">Current Total Quantity</label>
+                <input type="number" id="currentQuantity" placeholder="e.g. 45">
+            </div>
+            <div class="form-group">
+                <label for="reorderLevel">Reorder Level (Alert Limit)</label>
+                <input type="number" id="reorderLevel" placeholder="e.g. 5" value="5">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="notes">Notes / Reference</label>
+                <input type="text" id="notes" placeholder="e.g. Received shipment from Supp-201">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="createInventoryRecord()">+ Record Stock Movement</button>
+    </div>
+
+    <!-- STOCK MOVEMENTS TABLE (READ, UPDATE, DELETE) -->
+    <div class="card">
+        <h2>
+            📋 Stock Movement History & Tracking
+            <button class="btn btn-primary btn-sm" onclick="loadInventoryRecords()">🔄 Refresh</button>
+        </h2>
+        <table id="inventoryTable">
+            <thead>
+            <tr>
+                <th>Inventory ID</th>
+                <th>Spare Part ID</th>
+                <th>Current Qty</th>
+                <th>Stock-In</th>
+                <th>Stock-Out</th>
+                <th>Reorder Level</th>
+                <th>Movement Date</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_INVENTORY_RECORDS = '/api/inventory-records';
+
+    // --- 1. CREATE STOCK MOVEMENT RECORD ---
+    function createInventoryRecord() {
+        const sparePartId = document.getElementById('sparePartId').value;
+        const stockInQuantity = parseInt(document.getElementById('stockInQuantity').value) || 0;
+        const stockOutQuantity = parseInt(document.getElementById('stockOutQuantity').value) || 0;
+        let currentQuantity = document.getElementById('currentQuantity').value;
+        const reorderLevel = parseInt(document.getElementById('reorderLevel').value) || 5;
+        const notes = document.getElementById('notes').value;
+
+        if (!sparePartId) {
+            alert("Please enter a Spare Part ID!");
+            return;
+        }
+
+        if (!currentQuantity) {
+            currentQuantity = stockInQuantity - stockOutQuantity;
+        } else {
+            currentQuantity = parseInt(currentQuantity);
+        }
+
+        const payload = {
+            sparePartId: parseInt(sparePartId),
+            stockInQuantity: stockInQuantity,
+            stockOutQuantity: stockOutQuantity,
+            currentQuantity: currentQuantity,
+            reorderLevel: reorderLevel,
+            notes: notes
+        };
+
+        fetch(API_INVENTORY_RECORDS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(`✅ Stock Movement Record #${data.inventoryId} saved!`);
+            clearForm();
+            loadInventoryRecords();
+        })
+        .catch(err => alert("Error saving stock movement: " + err));
+    }
+
+    function clearForm() {
+        document.getElementById('sparePartId').value = '';
+        document.getElementById('stockInQuantity').value = '0';
+        document.getElementById('stockOutQuantity').value = '0';
+        document.getElementById('currentQuantity').value = '';
+        document.getElementById('notes').value = '';
+    }
+
+    // --- 2. READ STOCK MOVEMENTS ---
+    function loadInventoryRecords() {
+        fetch(API_INVENTORY_RECORDS)
+        .then(res => res.json())
+        .then(records => {
+            const tbody = document.querySelector('#inventoryTable tbody');
+            tbody.innerHTML = '';
+
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No stock movement records found. Add one above!</td></tr>';
+                return;
+            }
+
+            records.forEach(rec => {
+                const tr = document.createElement('tr');
+                const isLowStock = rec.currentQuantity <= (rec.reorderLevel || 5);
+                const badgeClass = isLowStock ? 'badge-low' : 'badge-ok';
+                const dateStr = rec.movementDate ? new Date(rec.movementDate).toLocaleString() : 'N/A';
+
+                tr.innerHTML = `
+                    <td><strong>#${rec.inventoryId}</strong></td>
+                    <td>Part-#${rec.sparePartId}</td>
+                    <td><span class="badge ${badgeClass}">${rec.currentQuantity}</span></td>
+                    <td style="color: #16a34a; font-weight: bold;">+${rec.stockInQuantity || 0}</td>
+                    <td style="color: #dc2626; font-weight: bold;">-${rec.stockOutQuantity || 0}</td>
+                    <td>${rec.reorderLevel || 5}</td>
+                    <td>${dateStr}</td>
+                    <td>${rec.notes || 'N/A'}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-warning btn-sm" onclick="editInventoryRecord(${rec.inventoryId}, ${rec.currentQuantity}, ${rec.reorderLevel}, '${rec.notes || ''}')">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteInventoryRecord(${rec.inventoryId})">🗑️ Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // --- 3. UPDATE INVENTORY RECORD ---
+    function editInventoryRecord(id, currentQty, currentReorder, currentNotes) {
+        const newQty = prompt(`Update Current Quantity for Record #${id}:`, currentQty);
+        if (newQty === null) return;
+
+        const newReorder = prompt(`Update Reorder Level for Record #${id}:`, currentReorder);
+        if (newReorder === null) return;
+
+        const newNotes = prompt(`Update Notes for Record #${id}:`, currentNotes);
+        if (newNotes === null) return;
+
+        const payload = {
+            currentQuantity: parseInt(newQty),
+            reorderLevel: parseInt(newReorder),
+            notes: newNotes
+        };
+
+        fetch(`${API_INVENTORY_RECORDS}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Inventory Record #${id} updated!`);
+            loadInventoryRecords();
+        });
+    }
+
+    // --- 4. DELETE INVENTORY RECORD ---
+    function deleteInventoryRecord(id) {
+        if (!confirm(`Are you sure you want to remove Inventory Record #${id}?`)) return;
+
+        fetch(`${API_INVENTORY_RECORDS}/${id}`, { method: 'DELETE' })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadInventoryRecords();
+        });
+    }
+
+    // Load inventory records on page start
+    window.onload = loadInventoryRecords;
+</script>
+
+</body>
+</html>
