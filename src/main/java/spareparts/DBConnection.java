@@ -15,9 +15,9 @@ public class DBConnection {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("✅ Connected to MSSQL Database (Port 1436) Successfully!");
+            System.out.println(" Connected to MSSQL Database (Port 1436) Successfully!");
         } catch (ClassNotFoundException | SQLException e) {
-            System.err.println("❌ MSSQL Database Connection Failed: " + e.getMessage());
+            System.err.println(" MSSQL Database Connection Failed: " + e.getMessage());
         }
         return connection;
     }
