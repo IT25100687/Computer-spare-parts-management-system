@@ -216,6 +216,30 @@
             padding: 20px;
             font-style: italic;
         }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -223,13 +247,16 @@
 <!-- Top Navigation Bar -->
 <div class="navbar">
     <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
         <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
-        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/sales.html" class="nav-link">🛒 Sales & Orders</a>
         <a href="/inventory.html" class="nav-link">📦 Inventory</a>
         <a href="/customer.html" class="nav-link active">👥 Customers</a>
         <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
         <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
     </div>
 </div>
 
@@ -242,18 +269,22 @@
     <!-- REGISTER CUSTOMER FORM (CREATE) -->
     <div class="card">
         <h2>➕ Register New Customer</h2>
+        <div id="alertBox" class="alert-error"></div>
         <div class="form-grid">
             <div class="form-group">
                 <label for="name">Customer Full Name</label>
-                <input type="text" id="name" placeholder="e.g. John Doe" required>
+                <input type="text" id="name" placeholder="e.g. John Doe" oninput="validateName()" required>
+                <span id="name-error" class="error-msg"></span>
             </div>
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="e.g. john@example.com" required>
+                <input type="email" id="email" placeholder="e.g. john@example.com" oninput="validateEmail()" required>
+                <span id="email-error" class="error-msg"></span>
             </div>
             <div class="form-group">
                 <label for="phone">Phone Number</label>
-                <input type="text" id="phone" placeholder="e.g. +1-555-0192" required>
+                <input type="text" id="phone" placeholder="e.g. +1-555-0192" oninput="validatePhone()" required>
+                <span id="phone-error" class="error-msg"></span>
             </div>
             <div class="form-group">
                 <label for="customerType">Customer Type</label>
@@ -306,21 +337,100 @@
 </div>
 
 <script>
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
+
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
+
     const API_CUSTOMERS = '/api/customers';
+
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function validateName() {
+        const val = document.getElementById('name').value.trim();
+        if (!val) {
+            return setFieldError('name', 'Customer full name is required.');
+        }
+        if (/^\d+$/.test(val) || !/[a-zA-Z]/.test(val)) {
+            return setFieldError('name', 'Customer name must contain valid words/letters and cannot be purely numeric.');
+        }
+        return setFieldError('name', null);
+    }
+
+    function validateEmail() {
+        const val = document.getElementById('email').value.trim();
+        if (!val) {
+            return setFieldError('email', 'Email address is required.');
+        }
+        if (!val.includes('@')) {
+            return setFieldError('email', 'Invalid email address format. Must contain "@".');
+        }
+        return setFieldError('email', null);
+    }
+
+    function validatePhone() {
+        const val = document.getElementById('phone').value.trim();
+        if (!val) {
+            return setFieldError('phone', 'Phone number is required.');
+        }
+        if (/[a-zA-Z]/.test(val)) {
+            return setFieldError('phone', 'Invalid phone number! Phone number cannot contain letters.');
+        }
+        const digits = val.replace(/\D/g, '');
+        if (digits.length !== 10) {
+            return setFieldError('phone', 'Phone number must contain exactly 10 digits (e.g. 0771234567).');
+        }
+        return setFieldError('phone', null);
+    }
 
     // --- 1. CREATE CUSTOMER ---
     function createCustomer() {
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const phone = document.getElementById('phone').value;
+        showAlert(null);
+        const isNameValid = validateName();
+        const isEmailValid = validateEmail();
+        const isPhoneValid = validatePhone();
+
+        if (!isNameValid || !isEmailValid || !isPhoneValid) {
+            showAlert("Please correct the highlighted errors before submitting!");
+            return;
+        }
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
         const customerType = document.getElementById('customerType').value;
         const status = document.getElementById('status').value;
         const address = document.getElementById('address').value;
-
-        if (!name || !email || !phone) {
-            alert("Please fill in all required fields!");
-            return;
-        }
 
         const payload = {
             name: name,
@@ -336,13 +446,19 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-            .then(res => res.json())
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.message || "Failed to register customer");
+                }
+                return data;
+            })
             .then(data => {
                 alert(`✅ Customer #${data.customerId} ("${data.name}") registered successfully!`);
                 clearForm();
                 loadCustomers();
             })
-            .catch(err => alert("Error registering customer: " + err));
+            .catch(err => showAlert(err.message));
     }
 
     function clearForm() {
@@ -350,6 +466,10 @@
         document.getElementById('email').value = '';
         document.getElementById('phone').value = '';
         document.getElementById('address').value = '';
+        setFieldError('name', null);
+        setFieldError('email', null);
+        setFieldError('phone', null);
+        showAlert(null);
     }
 
     // --- 2. READ CUSTOMERS ---
@@ -372,6 +492,11 @@
                     const statusBadgeClass = customer.status === 'Inactive' ? 'badge-low' : 'badge-ok';
                     const dateStr = customer.registrationDate ? new Date(customer.registrationDate).toLocaleDateString() : 'N/A';
 
+                    const actionColHtml = isCanEdit ? `
+                        <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.customerId}, '${customer.name}', '${customer.phone}', '${customer.email}', '${customer.address || ''}', '${customer.status || 'Active'}')">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerId})">🗑️ Delete</button>
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
+
                     tr.innerHTML = `
                     <td><strong>#${customer.customerId}</strong></td>
                     <td><strong>${customer.name}</strong></td>
@@ -381,10 +506,7 @@
                     <td><span class="badge ${badgeClass}">${customer.customerType || 'Individual'}</span></td>
                     <td><span class="badge ${statusBadgeClass}">${customer.status || 'Active'}</span></td>
                     <td>${dateStr}</td>
-                    <td class="actions-cell">
-                        <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.customerId}, '${customer.name}', '${customer.phone}', '${customer.email}', '${customer.address || ''}', '${customer.status || 'Active'}')">✏️ Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerId})">🗑️ Delete</button>
-                    </td>
+                    <td class="actions-cell">${actionColHtml}</td>
                 `;
                     tbody.appendChild(tr);
                 });
@@ -436,8 +558,38 @@
             });
     }
 
-    // Load customer table on page start
-    window.onload = loadCustomers;
+    const isCanEdit = ['ADMIN', 'SALES_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    // Load customer table and attach real-time input listeners
+    window.onload = function() {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Customer profile registration and editing are restricted to Admin & Sales Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Card
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) cards[0].style.display = 'none';
+        }
+
+        loadCustomers();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const phone = document.getElementById('phone');
+            if (phone) phone.addEventListener(evt, validatePhone);
+            const name = document.getElementById('name');
+            if (name) name.addEventListener(evt, validateName);
+            const email = document.getElementById('email');
+            if (email) email.addEventListener(evt, validateEmail);
+        });
+    };
 </script>
 
 </body>
