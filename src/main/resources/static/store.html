@@ -2099,7 +2099,7 @@
             parts.forEach(p => {
                 const pName = (p.partName || '').toLowerCase().trim();
                 let sampleMatch = INITIAL_CATALOG_SAMPLES.find(s => s.sparePartId === p.sparePartId) ||
-                    INITIAL_CATALOG_SAMPLES.find(s => s.partName.toLowerCase().trim() === pName);
+                                  INITIAL_CATALOG_SAMPLES.find(s => s.partName.toLowerCase().trim() === pName);
                 if (!sampleMatch) {
                     if (pName.includes('4000d')) {
                         sampleMatch = INITIAL_CATALOG_SAMPLES.find(s => s.partName.toLowerCase().includes('4000d'));
@@ -2235,10 +2235,10 @@
             const matchCat = !activeCategoryFilter || p.category === activeCategoryFilter;
             const matchBrand = !selectedBrand || p.brand === selectedBrand;
             const matchQuery = !query ||
-                (p.partName && p.partName.toLowerCase().includes(query)) ||
-                (p.brand && p.brand.toLowerCase().includes(query)) ||
-                (p.category && p.category.toLowerCase().includes(query)) ||
-                (p.compatibilityInfo && p.compatibilityInfo.toLowerCase().includes(query));
+                               (p.partName && p.partName.toLowerCase().includes(query)) ||
+                               (p.brand && p.brand.toLowerCase().includes(query)) ||
+                               (p.category && p.category.toLowerCase().includes(query)) ||
+                               (p.compatibilityInfo && p.compatibilityInfo.toLowerCase().includes(query));
             return matchCat && matchBrand && matchQuery;
         });
 
@@ -2648,23 +2648,23 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: u, password: p })
         })
-            .then(async r => {
-                const d = await r.json();
-                if (!r.ok) throw new Error(d.message || 'Invalid credentials');
-                return d;
-            })
-            .then(admin => {
-                localStorage.setItem('adminUser', JSON.stringify(admin));
-                updateAdminHeader();
-                alert(`Logged In: Welcome ${admin.fullName || admin.username} (${admin.role || 'ADMIN'})!`);
-                closeModal('authModal');
-                if (admin.role === 'INVENTORY_STAFF') {
-                    window.location.href = '/inventory.html';
-                } else {
-                    window.location.href = '/sales.html';
-                }
-            })
-            .catch(err => showAuthAlert(err.message));
+        .then(async r => {
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.message || 'Invalid credentials');
+            return d;
+        })
+        .then(admin => {
+            localStorage.setItem('adminUser', JSON.stringify(admin));
+            updateAdminHeader();
+            alert(`Logged In: Welcome ${admin.fullName || admin.username} (${admin.role || 'ADMIN'})!`);
+            closeModal('authModal');
+            if (admin.role === 'INVENTORY_STAFF') {
+                window.location.href = '/inventory.html';
+            } else {
+                window.location.href = '/sales.html';
+            }
+        })
+        .catch(err => showAuthAlert(err.message));
     }
 
     function logoutCustomer() {
@@ -2691,17 +2691,17 @@
 
         // Load Order History for this customer
         fetch(API_ORDERS)
-            .then(r => r.json())
-            .then(orders => {
-                const customerOrders = orders.filter(o => o.customerId === currentCustomer.customerId);
-                const container = document.getElementById('orderHistoryContainer');
+        .then(r => r.json())
+        .then(orders => {
+            const customerOrders = orders.filter(o => o.customerId === currentCustomer.customerId);
+            const container = document.getElementById('orderHistoryContainer');
 
-                if (customerOrders.length === 0) {
-                    container.innerHTML = `<div style="color: var(--text-light); text-align: center; padding: 20px; font-style: italic;">No past orders or transactions found.</div>`;
-                    return;
-                }
+            if (customerOrders.length === 0) {
+                container.innerHTML = `<div style="color: var(--text-light); text-align: center; padding: 20px; font-style: italic;">No past orders or transactions found.</div>`;
+                return;
+            }
 
-                let html = `
+            let html = `
                 <table class="history-table">
                     <thead>
                         <tr>
@@ -2716,9 +2716,9 @@
                     <tbody>
             `;
 
-                customerOrders.forEach(o => {
-                    const part = allPartsList.find(p => p.sparePartId === o.sparePartId);
-                    html += `
+            customerOrders.forEach(o => {
+                const part = allPartsList.find(p => p.sparePartId === o.sparePartId);
+                html += `
                     <tr>
                         <td><strong>#${o.orderId}</strong></td>
                         <td>${part ? part.partName : 'Part #' + o.sparePartId}</td>
@@ -2728,11 +2728,11 @@
                         <td><span style="background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:bold;">${o.orderStatus || 'Pending'}</span></td>
                     </tr>
                 `;
-                });
-
-                html += `</tbody></table>`;
-                container.innerHTML = html;
             });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        });
 
         document.getElementById('profileModal').style.display = 'flex';
     }

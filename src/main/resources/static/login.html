@@ -259,17 +259,17 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         })
-            .then(async res => {
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Login failed');
-                return data;
-            })
-            .then(user => {
-                localStorage.setItem('adminUser', JSON.stringify(user));
-                alert(`✅ Welcome back, ${user.fullName || user.username}! Redirecting to Admin Panel...`);
-                window.location.href = '/index.html';
-            })
-            .catch(err => showAlert(err.message));
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Login failed');
+            return data;
+        })
+        .then(user => {
+            localStorage.setItem('adminUser', JSON.stringify(user));
+            alert(`✅ Welcome back, ${user.fullName || user.username}! Redirecting to Admin Panel...`);
+            window.location.href = '/index.html';
+        })
+        .catch(err => showAlert(err.message));
     }
 
     function handleRegister(e) {
@@ -294,17 +294,17 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-            .then(async res => {
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Registration failed');
-                return data;
-            })
-            .then(user => {
-                alert(`🎉 Admin account "${user.username}" registered successfully! Please log in.`);
-                showTab('login');
-                document.getElementById('loginUsername').value = user.username;
-            })
-            .catch(err => showAlert(err.message));
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Registration failed');
+            return data;
+        })
+        .then(user => {
+            alert(`🎉 Admin account "${user.username}" registered successfully! Please log in.`);
+            showTab('login');
+            document.getElementById('loginUsername').value = user.username;
+        })
+        .catch(err => showAlert(err.message));
     }
 </script>
 
