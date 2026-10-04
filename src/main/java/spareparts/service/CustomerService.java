@@ -23,7 +23,35 @@ public class CustomerService {
         return customerRepository.findById(id).orElse(null);
     }
 
+    private void validateCustomerFields(String name, String email, String phone) {
+        if (name != null) {
+            if (name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Customer name cannot be empty.");
+            }
+            if (name.matches("^\\d+$") || !name.matches(".*[a-zA-Z].*")) {
+                throw new IllegalArgumentException("Customer name must contain valid words/letters and cannot be purely numeric.");
+            }
+        }
+        if (phone != null && !phone.trim().isEmpty()) {
+            String digits = phone.replaceAll("\\D", "");
+            if (digits.length() != 10) {
+                throw new IllegalArgumentException("Phone number must contain exactly 10 digits (e.g. 0771234567).");
+            }
+        }
+        if (email != null && !email.trim().isEmpty() && !email.contains("@")) {
+            throw new IllegalArgumentException("Invalid email address format.");
+        }
+    }
+
     public Customer createCustomer(Customer customer) {
+        if (customer.getName() == null || customer.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer name is required.");
+        }
+        if (customer.getPhone() == null || customer.getPhone().trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer phone number is required.");
+        }
+        validateCustomerFields(customer.getName(), customer.getEmail(), customer.getPhone());
+
         if (customer.getRegistrationDate() == null) {
             customer.setRegistrationDate(LocalDateTime.now());
         }
@@ -38,6 +66,8 @@ public class CustomerService {
 
     public Customer updateCustomer(Long id, Customer details) {
         Customer existing = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        validateCustomerFields(details.getName(), details.getEmail(), details.getPhone());
+
         if (details.getName() != null) existing.setName(details.getName());
         if (details.getEmail() != null) existing.setEmail(details.getEmail());
         if (details.getPhone() != null) existing.setPhone(details.getPhone());
