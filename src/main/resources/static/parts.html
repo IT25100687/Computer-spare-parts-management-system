@@ -202,6 +202,9 @@
 
         .badge-eligible { background: #dcfce7; color: #166534; }
         .badge-not-eligible { background: #fee2e2; color: #991b1b; }
+        .badge-new { background: #dcfce7; color: #166534; }
+        .badge-used { background: #fef3c7; color: #92400e; }
+        .badge-refurbished { background: #e0e7ff; color: #3730a3; }
 
         .actions-cell {
             display: flex;
@@ -215,6 +218,30 @@
             padding: 20px;
             font-style: italic;
         }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -222,13 +249,16 @@
 <!-- Top Navigation Bar -->
 <div class="navbar">
     <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
         <a href="/parts.html" class="nav-link active">🛠️ Computer Parts</a>
-        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/sales.html" class="nav-link">🛒 Sales & Orders</a>
         <a href="/inventory.html" class="nav-link">📦 Inventory</a>
         <a href="/customer.html" class="nav-link">👥 Customers</a>
         <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
         <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
     </div>
 </div>
 
@@ -241,14 +271,17 @@
     <!-- CREATE SPARE PART FORM (CREATE) -->
     <div class="card">
         <h2>➕ Add New Computer Component / Part</h2>
+        <div id="alertBox" class="alert-error"></div>
         <div class="form-grid">
             <div class="form-group">
                 <label for="partName">Part Name</label>
-                <input type="text" id="partName" placeholder="e.g. Intel Core i7-13700K CPU" required>
+                <input type="text" id="partName" placeholder="e.g. Intel Core i7-13700K CPU" oninput="validatePartName()" required>
+                <span id="partName-error" class="error-msg"></span>
             </div>
             <div class="form-group">
                 <label for="category">Category</label>
                 <select id="category">
+                    <option value="Monitors & Displays">Monitors & Displays</option>
                     <option value="Processors (CPU)">Processors (CPU)</option>
                     <option value="Graphics Cards (GPU)">Graphics Cards (GPU)</option>
                     <option value="RAM / Memory">RAM / Memory</option>
@@ -256,19 +289,68 @@
                     <option value="Motherboards">Motherboards</option>
                     <option value="Power Supply (PSU)">Power Supply (PSU)</option>
                     <option value="Cooling & Fans">Cooling & Fans</option>
+                    <option value="PC Cases & Casing">PC Cases & Casing</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="brand">Brand / Manufacturer</label>
-                <input type="text" id="brand" placeholder="e.g. Intel / ASUS / Corsair" required>
+                <input type="text" id="brand" list="brandSuggestions" placeholder="e.g. Intel / ASUS / Corsair" oninput="validateBrand()" required>
+                <datalist id="brandSuggestions">
+                    <option value="Intel">
+                    <option value="AMD">
+                    <option value="Nvidia">
+                    <option value="ASUS">
+                    <option value="MSI">
+                    <option value="Gigabyte">
+                    <option value="Corsair">
+                    <option value="Kingston">
+                    <option value="Samsung">
+                    <option value="Western Digital">
+                    <option value="Seagate">
+                    <option value="Crucial">
+                    <option value="EVGA">
+                    <option value="Cooler Master">
+                    <option value="NZXT">
+                    <option value="Seasonic">
+                    <option value="Logitech">
+                    <option value="Razer">
+                    <option value="Dell">
+                    <option value="HP">
+                    <option value="Lenovo">
+                    <option value="Acer">
+                    <option value="Apple">
+                </datalist>
+                <span id="brand-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="unitPrice">Unit Price ($)</label>
-                <input type="number" step="0.01" id="unitPrice" placeholder="e.g. 380.00" required>
+                <label for="unitPrice">Unit Price (LKR) <span style="color: #dc2626;">*</span></label>
+                <input type="number" step="0.01" id="unitPrice" placeholder="e.g. 89500.00" oninput="validateUnitPrice()" required>
+                <span id="unitPrice-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="stockQuantity">Number of Items (Stock Qty) <span style="color: #dc2626;">*</span></label>
+                <input type="number" id="stockQuantity" placeholder="e.g. 10" value="1" min="1" oninput="validateStockQuantity()" required>
+                <span id="stockQuantity-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="supplierId">Supplier / Manufacturer Source</label>
+                <select id="supplierId">
+                    <option value="">-- Select Registered Supplier (Optional) --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="itemCondition">Item Condition (New / Used)</label>
+                <select id="itemCondition">
+                    <option value="Brand New">✨ Brand New</option>
+                    <option value="Used - Like New">🔄 Used - Like New</option>
+                    <option value="Used - Good Condition">📦 Used - Good Condition</option>
+                    <option value="Used - Refurbished">🛠️ Used - Refurbished</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="reorderLevel">Reorder Level Limit</label>
-                <input type="number" id="reorderLevel" placeholder="e.g. 5" value="5">
+                <input type="number" id="reorderLevel" placeholder="e.g. 5" value="5" oninput="validateReorderLevel()">
+                <span id="reorderLevel-error" class="error-msg"></span>
             </div>
             <div class="form-group">
                 <label for="warrantyEligibility">Warranty Eligibility</label>
@@ -304,9 +386,12 @@
                 <th>Part Name</th>
                 <th>Category</th>
                 <th>Brand</th>
-                <th>Unit Price ($)</th>
+                <th>In Stock Qty</th>
+                <th>Unit Price (LKR)</th>
+                <th>Supplier</th>
+                <th>Condition</th>
                 <th>Compatibility</th>
-                <th>Warranty Eligibility</th>
+                <th>Warranty</th>
                 <th>Reorder Level</th>
                 <th>Actions</th>
             </tr>
@@ -319,29 +404,145 @@
 </div>
 
 <script>
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
+
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
+
     const API_PARTS = '/api/parts';
+    const API_SUPPLIERS = '/api/suppliers';
+    let allSuppliersList = [];
+
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (!input || !errSpan) return true;
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function loadSuppliersDropdown() {
+        fetch(API_SUPPLIERS)
+        .then(res => res.json())
+        .then(suppliers => {
+            allSuppliersList = suppliers;
+            const select = document.getElementById('supplierId');
+            if (!select) return;
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Select Registered Supplier (Optional) --</option>';
+            suppliers.forEach(supp => {
+                const opt = document.createElement('option');
+                opt.value = supp.supplierId;
+                opt.textContent = `#${supp.supplierId} - ${supp.company} (${supp.supplierName || 'N/A'})`;
+                if (supp.supplierId == currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+        })
+        .catch(() => {});
+    }
+
+    function validatePartName() {
+        const val = document.getElementById('partName').value.trim();
+        if (!val) {
+            return setFieldError('partName', 'Part name is required.');
+        }
+        return setFieldError('partName', null);
+    }
+
+    function validateBrand() {
+        const val = document.getElementById('brand').value.trim();
+        if (!val) {
+            return setFieldError('brand', 'Brand is required.');
+        }
+        return setFieldError('brand', null);
+    }
+
+    function validateUnitPrice() {
+        const val = document.getElementById('unitPrice').value;
+        if (val === '') {
+            return setFieldError('unitPrice', 'Unit price is required.');
+        }
+        if (parseFloat(val) < 0) {
+            return setFieldError('unitPrice', 'Unit price cannot be negative.');
+        }
+        return setFieldError('unitPrice', null);
+    }
+
+    function validateStockQuantity() {
+        const val = document.getElementById('stockQuantity').value;
+        if (val === '' || parseInt(val) <= 0) {
+            return setFieldError('stockQuantity', 'Number of items must be a positive integer (> 0).');
+        }
+        return setFieldError('stockQuantity', null);
+    }
+
+    function validateReorderLevel() {
+        const val = document.getElementById('reorderLevel').value;
+        if (val !== '' && parseInt(val) < 0) {
+            return setFieldError('reorderLevel', 'Reorder level cannot be negative.');
+        }
+        return setFieldError('reorderLevel', null);
+    }
 
     // --- 1. CREATE SPARE PART ---
     function createPart() {
-        const partName = document.getElementById('partName').value;
+        showAlert(null);
+        const isNameValid = validatePartName();
+        const isBrandValid = validateBrand();
+        const isPriceValid = validateUnitPrice();
+        const isStockValid = validateStockQuantity();
+        const isReorderValid = validateReorderLevel();
+
+        if (!isNameValid || !isBrandValid || !isPriceValid || !isStockValid || !isReorderValid) {
+            showAlert("Please correct the highlighted errors before submitting!");
+            return;
+        }
+
+        const partName = document.getElementById('partName').value.trim();
         const category = document.getElementById('category').value;
-        const brand = document.getElementById('brand').value;
+        const brand = document.getElementById('brand').value.trim();
         const unitPrice = document.getElementById('unitPrice').value;
+        const stockQuantity = document.getElementById('stockQuantity').value || 1;
+        const supplierIdVal = document.getElementById('supplierId').value;
+        const itemCondition = document.getElementById('itemCondition').value;
         const reorderLevel = document.getElementById('reorderLevel').value || 5;
         const warrantyEligibility = document.getElementById('warrantyEligibility').value;
         const compatibility = document.getElementById('compatibility').value;
         const description = document.getElementById('description').value;
-
-        if (!partName || !brand || !unitPrice) {
-            alert("Please fill in Part Name, Brand, and Unit Price!");
-            return;
-        }
 
         const payload = {
             partName: partName,
             category: category,
             brand: brand,
             unitPrice: parseFloat(unitPrice),
+            stockQuantity: parseInt(stockQuantity),
+            supplierId: supplierIdVal ? parseInt(supplierIdVal) : null,
+            itemCondition: itemCondition,
             reorderLevel: parseInt(reorderLevel),
             warrantyEligibility: warrantyEligibility,
             compatibility: compatibility,
@@ -353,21 +554,37 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to save computer part");
+            }
+            return data;
+        })
         .then(data => {
             alert(`✅ Computer Part #${data.sparePartId} ("${data.partName}") saved successfully!`);
             clearForm();
             loadParts();
         })
-        .catch(err => alert("Error saving computer part: " + err));
+        .catch(err => showAlert(err.message));
     }
 
     function clearForm() {
         document.getElementById('partName').value = '';
         document.getElementById('brand').value = '';
         document.getElementById('unitPrice').value = '';
+        document.getElementById('stockQuantity').value = '1';
+        document.getElementById('supplierId').value = '';
+        document.getElementById('itemCondition').value = 'Brand New';
+        document.getElementById('reorderLevel').value = '5';
         document.getElementById('compatibility').value = '';
         document.getElementById('description').value = '';
+        setFieldError('partName', null);
+        setFieldError('brand', null);
+        setFieldError('unitPrice', null);
+        setFieldError('stockQuantity', null);
+        setFieldError('reorderLevel', null);
+        showAlert(null);
     }
 
     // --- 2. READ SPARE PARTS ---
@@ -379,27 +596,53 @@
             tbody.innerHTML = '';
 
             if (parts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No computer spare parts cataloged yet. Add one above!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" class="empty-msg">No computer spare parts cataloged yet. Add one above!</td></tr>';
                 return;
             }
 
             parts.forEach(part => {
                 const tr = document.createElement('tr');
                 const badgeClass = part.warrantyEligibility === 'Not Eligible' ? 'badge-not-eligible' : 'badge-eligible';
+                const condStr = part.itemCondition || 'Brand New';
+                const condBadgeClass = condStr.startsWith('Used') ? (condStr.includes('Refurbished') ? 'badge-refurbished' : 'badge-used') : 'badge-new';
+                
+                const supp = allSuppliersList.find(s => s.supplierId === part.supplierId);
+                let supplierStr = '';
+                if (supp) {
+                    supplierStr = `#${supp.supplierId} - ${supp.company}`;
+                } else if (part.supplierId) {
+                    supplierStr = `Supplier #${part.supplierId}`;
+                } else {
+                    const defaultSuppliers = [
+                        "Chama Distribution Lanka Pvt Ltd (#1)",
+                        "TechZone Hardware Importers (#2)",
+                        "Redline Tech Official Agency (#3)",
+                        "Barclays Lanka IT Solutions (#4)",
+                        "Abans Tech Distribution Hub (#5)"
+                    ];
+                    supplierStr = defaultSuppliers[Math.abs(part.sparePartId || 1) % defaultSuppliers.length];
+                }
+
+                const priceLkrStr = 'LKR ' + Number(part.unitPrice || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                const actionButtonsHtml = isCanEdit ? `
+                        <button class="btn btn-warning btn-sm" onclick="editPart(${part.sparePartId}, '${part.partName.replace(/'/g, "\\'")}', ${part.unitPrice}, ${part.stockQuantity != null ? part.stockQuantity : 1}, ${part.supplierId || 'null'}, '${part.category || 'Processors (CPU)'}', '${part.itemCondition || 'Brand New'}', '${(part.compatibility || '').replace(/'/g, "\\'")}', '${part.warrantyEligibility || 'Eligible (12 Months)'}')">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePart(${part.sparePartId})">🗑️ Delete</button>
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
 
                 tr.innerHTML = `
                     <td><strong>#${part.sparePartId}</strong></td>
                     <td><strong>${part.partName}</strong></td>
                     <td>${part.category || 'General Hardware'}</td>
                     <td>${part.brand || 'N/A'}</td>
-                    <td><strong>$${(part.unitPrice || 0).toFixed(2)}</strong></td>
+                    <td><strong style="color: #2563eb; font-size: 15px;">${part.stockQuantity != null ? part.stockQuantity : 1}</strong> units</td>
+                    <td><strong>${priceLkrStr}</strong></td>
+                    <td>${supplierStr}</td>
+                    <td><span class="badge ${condBadgeClass}">${condStr}</span></td>
                     <td>${part.compatibility || 'Universal'}</td>
                     <td><span class="badge ${badgeClass}">${part.warrantyEligibility || 'Eligible (12 Months)'}</span></td>
                     <td>${part.reorderLevel || 5}</td>
-                    <td class="actions-cell">
-                        <button class="btn btn-warning btn-sm" onclick="editPart(${part.sparePartId}, '${part.partName}', ${part.unitPrice}, '${part.category || 'Processors (CPU)'}', '${part.compatibility || ''}', '${part.warrantyEligibility || 'Eligible (12 Months)'}')">✏️ Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deletePart(${part.sparePartId})">🗑️ Delete</button>
-                    </td>
+                    <td class="actions-cell">${actionButtonsHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -407,9 +650,15 @@
     }
 
     // --- 3. UPDATE SPARE PART ---
-    function editPart(id, currentName, currentPrice, currentCategory, currentCompat, currentWarranty) {
-        const newPrice = prompt(`Update Unit Price ($) for ${currentName} (#${id}):`, currentPrice);
+    function editPart(id, currentName, currentPrice, currentStock, currentSupplierId, currentCategory, currentCondition, currentCompat, currentWarranty) {
+        const newPrice = prompt(`Update Unit Price (LKR) for ${currentName} (#${id}):`, currentPrice);
         if (newPrice === null) return;
+
+        const newStock = prompt(`Update Number of Items (Stock Quantity) for ${currentName} (#${id}):`, currentStock);
+        if (newStock === null) return;
+
+        const newCondition = prompt(`Update Condition for ${currentName} (#${id}) (Brand New, Used - Like New, Used - Good Condition, Used - Refurbished):`, currentCondition);
+        if (newCondition === null) return;
 
         const newCategory = prompt(`Update Category for ${currentName} (#${id}):`, currentCategory);
         if (newCategory === null) return;
@@ -422,6 +671,8 @@
 
         const payload = {
             unitPrice: parseFloat(newPrice),
+            stockQuantity: parseInt(newStock),
+            itemCondition: newCondition,
             category: newCategory,
             compatibility: newCompat,
             warrantyEligibility: newWarranty
@@ -451,8 +702,43 @@
         });
     }
 
-    // Load parts table on page start
-    window.onload = loadParts;
+    const isCanEdit = ['ADMIN', 'INVENTORY_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    // Load parts table and attach real-time input listeners
+    window.onload = function() {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Creation and editing of parts are restricted to Admin & Inventory Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Card
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) cards[0].style.display = 'none';
+        }
+
+        loadSuppliersDropdown();
+        loadParts();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const pName = document.getElementById('partName');
+            if (pName) pName.addEventListener(evt, validatePartName);
+            const brand = document.getElementById('brand');
+            if (brand) brand.addEventListener(evt, validateBrand);
+            const uPrice = document.getElementById('unitPrice');
+            if (uPrice) uPrice.addEventListener(evt, validateUnitPrice);
+            const sQty = document.getElementById('stockQuantity');
+            if (sQty) sQty.addEventListener(evt, validateStockQuantity);
+            const reorder = document.getElementById('reorderLevel');
+            if (reorder) reorder.addEventListener(evt, validateReorderLevel);
+        });
+    };
 </script>
 
 </body>

@@ -17,6 +17,7 @@ public class SparePart {
     private Double unitPrice;
     private String compatibility;
     private String warrantyEligibility; // Eligible (12 Months), Not Eligible
+    private String itemCondition; // Brand New, Used - Like New, Used - Good Condition, Used - Refurbished
     private Integer reorderLevel;
     private Integer stockQuantity;
     private Long supplierId;
@@ -24,7 +25,7 @@ public class SparePart {
     public SparePart() {
     }
 
-    public SparePart(Long sparePartId, String partName, String category, String brand, String description, Double unitPrice, String compatibility, String warrantyEligibility, Integer reorderLevel, Integer stockQuantity, Long supplierId) {
+    public SparePart(Long sparePartId, String partName, String category, String brand, String description, Double unitPrice, String compatibility, String warrantyEligibility, String itemCondition, Integer reorderLevel, Integer stockQuantity, Long supplierId) {
         this.sparePartId = sparePartId;
         this.partName = partName;
         this.category = category;
@@ -33,6 +34,7 @@ public class SparePart {
         this.unitPrice = unitPrice;
         this.compatibility = compatibility;
         this.warrantyEligibility = warrantyEligibility;
+        this.itemCondition = itemCondition;
         this.reorderLevel = reorderLevel;
         this.stockQuantity = stockQuantity;
         this.supplierId = supplierId;
@@ -100,6 +102,14 @@ public class SparePart {
 
     public void setWarrantyEligibility(String warrantyEligibility) {
         this.warrantyEligibility = warrantyEligibility;
+    }
+
+    public String getItemCondition() {
+        return itemCondition;
+    }
+
+    public void setItemCondition(String itemCondition) {
+        this.itemCondition = itemCondition;
     }
 
     public Integer getReorderLevel() {
