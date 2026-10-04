@@ -40,11 +40,11 @@ INSERT INTO inventory (spare_part_id, current_quantity, stock_in_quantity, stock
 VALUES (2, 10, 15, 5, 3, GETDATE(), 'RTX 4070 GPUs stock intake from Supp-2 (ASUS)');
 
 -- Sample Customer Orders (Spec Section 7.5)
-INSERT INTO customer_orders (customer_id, spare_part_id, quantity, unit_price, total_amount, order_status, order_date) 
+INSERT INTO customer_orders (customer_id, spare_part_id, quantity, unit_price, total_amount, order_status, order_date)
 VALUES (1, 1, 1, 380.00, 380.00, 'Completed', GETDATE());
 
 -- Sample Completed Sales (Spec Section 7.5)
-INSERT INTO sales (order_id, customer_id, sale_date, payment_status, invoice_number) 
+INSERT INTO sales (order_id, customer_id, sale_date, payment_status, invoice_number)
 VALUES (1, 1, GETDATE(), 'Paid', 'INV-1710000000001');
 
 -- Sample Warranties & Claims (Spec Section 7.6)
