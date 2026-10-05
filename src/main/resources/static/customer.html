@@ -446,19 +446,19 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.message || "Failed to register customer");
-            }
-            return data;
-        })
-        .then(data => {
-            alert(`✅ Customer #${data.customerId} ("${data.name}") registered successfully!`);
-            clearForm();
-            loadCustomers();
-        })
-        .catch(err => showAlert(err.message));
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.message || "Failed to register customer");
+                }
+                return data;
+            })
+            .then(data => {
+                alert(`✅ Customer #${data.customerId} ("${data.name}") registered successfully!`);
+                clearForm();
+                loadCustomers();
+            })
+            .catch(err => showAlert(err.message));
     }
 
     function clearForm() {
@@ -475,29 +475,29 @@
     // --- 2. READ CUSTOMERS ---
     function loadCustomers() {
         fetch(API_CUSTOMERS)
-        .then(res => res.json())
-        .then(customers => {
-            const tbody = document.querySelector('#customersTable tbody');
-            tbody.innerHTML = '';
+            .then(res => res.json())
+            .then(customers => {
+                const tbody = document.querySelector('#customersTable tbody');
+                tbody.innerHTML = '';
 
-            if (customers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No customers registered yet. Register one above!</td></tr>';
-                return;
-            }
+                if (customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No customers registered yet. Register one above!</td></tr>';
+                    return;
+                }
 
-            customers.forEach(customer => {
-                const tr = document.createElement('tr');
-                const badgeClass = customer.customerType === 'Corporate' ? 'badge-corporate' :
-                                   customer.customerType === 'Wholesale' ? 'badge-wholesale' : 'badge-individual';
-                const statusBadgeClass = customer.status === 'Inactive' ? 'badge-low' : 'badge-ok';
-                const dateStr = customer.registrationDate ? new Date(customer.registrationDate).toLocaleDateString() : 'N/A';
+                customers.forEach(customer => {
+                    const tr = document.createElement('tr');
+                    const badgeClass = customer.customerType === 'Corporate' ? 'badge-corporate' :
+                        customer.customerType === 'Wholesale' ? 'badge-wholesale' : 'badge-individual';
+                    const statusBadgeClass = customer.status === 'Inactive' ? 'badge-low' : 'badge-ok';
+                    const dateStr = customer.registrationDate ? new Date(customer.registrationDate).toLocaleDateString() : 'N/A';
 
-                const actionColHtml = isCanEdit ? `
+                    const actionColHtml = isCanEdit ? `
                         <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.customerId}, '${customer.name}', '${customer.phone}', '${customer.email}', '${customer.address || ''}', '${customer.status || 'Active'}')">✏️ Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerId})">🗑️ Delete</button>
                 ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
 
-                tr.innerHTML = `
+                    tr.innerHTML = `
                     <td><strong>#${customer.customerId}</strong></td>
                     <td><strong>${customer.name}</strong></td>
                     <td>${customer.email}</td>
@@ -508,9 +508,9 @@
                     <td>${dateStr}</td>
                     <td class="actions-cell">${actionColHtml}</td>
                 `;
-                tbody.appendChild(tr);
+                    tbody.appendChild(tr);
+                });
             });
-        });
     }
 
     // --- 3. UPDATE CUSTOMER ---
@@ -539,11 +539,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(updated => {
-            alert(`✅ Customer #${id} updated!`);
-            loadCustomers();
-        });
+            .then(res => res.json())
+            .then(updated => {
+                alert(`✅ Customer #${id} updated!`);
+                loadCustomers();
+            });
     }
 
     // --- 4. DELETE CUSTOMER ---
@@ -551,11 +551,11 @@
         if (!confirm(`Are you sure you want to delete Customer #${id}?`)) return;
 
         fetch(`${API_CUSTOMERS}/${id}`, { method: 'DELETE' })
-        .then(res => res.text())
-        .then(msg => {
-            alert(msg);
-            loadCustomers();
-        });
+            .then(res => res.text())
+            .then(msg => {
+                alert(msg);
+                loadCustomers();
+            });
     }
 
     const isCanEdit = ['ADMIN', 'SALES_STAFF'].includes(adminUser.role || 'ADMIN');
