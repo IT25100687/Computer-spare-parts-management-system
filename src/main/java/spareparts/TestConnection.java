@@ -9,9 +9,9 @@ public class TestConnection {
         Connection conn = DBConnection.getConnection();
 
         if (conn != null) {
-            System.out.println("🎉 MSSQL Connection Test Passed!");
+            System.out.println(" MSSQL Connection Test Passed!");
         } else {
-            System.out.println("💥 MSSQL Connection Test Failed!");
+            System.out.println(" MSSQL Connection Test Failed!");
         }
     }
 }
