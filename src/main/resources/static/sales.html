@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales & Orders - Spare Parts System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background-color: #0f172a;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: var(--success-hover); }
+
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-completed { background: #dcfce7; color: #166534; }
+        .badge-cancelled { background: #fee2e2; color: #991b1b; }
+        .badge-paid { background: #dbeafe; color: #1e40af; }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            font-style: italic;
+        }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <a href="/parts.html" class="navbar-brand"> Computer Spare Parts Management System</a>
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
+        <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
+        <a href="/sales.html" class="nav-link active">🛒 Sales & Orders</a>
+        <a href="/inventory.html" class="nav-link">📦 Inventory</a>
+        <a href="/customer.html" class="nav-link">👥 Customers</a>
+        <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
+        <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>⚙️ Sales & Orders</h1>
+    </div>
+
+    <!-- 1. CUSTOMER ORDERS FORM -->
+    <div class="card" id="customerOrderCard">
+        <h2>👥 Customer Orders</h2>
+        <div id="alertBox" class="alert-error"></div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="customerSearchInput">Select / Type Customer <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="customerSearchInput" list="customerSuggestions" placeholder="Type or select Customer Name or ID..." oninput="onCustomerInputChanged()">
+                <input type="hidden" id="customerId">
+                <datalist id="customerSuggestions"></datalist>
+                <span id="customerSearchInput-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="sparePartSearchInput">Select / Type Spare Part <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="sparePartSearchInput" list="sparePartSuggestions" placeholder="Type or select Spare Part Name or ID..." oninput="onSparePartInputChanged()">
+                <input type="hidden" id="sparePartId">
+                <datalist id="sparePartSuggestions"></datalist>
+                <span id="sparePartSearchInput-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity <span style="color: #dc2626;">*</span></label>
+                <input type="number" id="quantity" placeholder="e.g. 2" oninput="validateQuantity(); calculateTotal();" required>
+                <span id="quantity-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="unitPrice">Unit Price (LKR) <span style="color: #dc2626;">*</span></label>
+                <input type="number" step="0.01" id="unitPrice" placeholder="e.g. 89500.00" oninput="validateUnitPrice(); calculateTotal();" required>
+                <span id="unitPrice-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="totalAmount">Total Amount (LKR)</label>
+                <input type="number" step="0.01" id="totalAmount" placeholder="Auto-calculated" readonly style="background: #f1f5f9;">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="createOrder()">+ Submit Customer Order</button>
+    </div>
+
+    <!-- 2. SHOP'S OWN ORDERS (INVENTORY RESTOCK PROCUREMENT) -->
+    <div class="card" id="shopOrderCard">
+        <h2>🏬 Shop's Own Orders (Inventory Restock Procurement)</h2>
+        <div id="shopAlertBox" class="alert-error"></div>
+        <div class="form-grid">
+            <input type="hidden" id="shopRequestId">
+            <div class="form-group">
+                <label for="shopSparePartId">Spare Part ID <span style="color: #dc2626;">*</span></label>
+                <input type="number" id="shopSparePartId" placeholder="e.g. 1" oninput="validateShopSparePartId(); fetchShopPartDetails();" required>
+                <span id="shopSparePartId-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="shopPartName">Spare Part Name & Brand</label>
+                <input type="text" id="shopPartName" placeholder="e.g. Intel Core i7 CPU (Intel)" readonly style="background: #f1f5f9;">
+            </div>
+            <div class="form-group">
+                <label for="supplierId">Supplier ID / Name</label>
+                <input type="text" id="supplierId" placeholder="e.g. Supplier #101 / Direct Restock">
+            </div>
+            <div class="form-group">
+                <label for="shopQuantity">Restock Quantity <span style="color: #dc2626;">*</span></label>
+                <input type="number" id="shopQuantity" placeholder="e.g. 5" oninput="validateShopQuantity(); calculateShopTotal();" required>
+                <span id="shopQuantity-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="shopUnitPrice">Estimated Unit Price ($)</label>
+                <input type="number" step="0.01" id="shopUnitPrice" placeholder="e.g. 350.00" oninput="calculateShopTotal();">
+            </div>
+            <div class="form-group">
+                <label for="shopTotalAmount">Total Restock Cost ($)</label>
+                <input type="number" step="0.01" id="shopTotalAmount" placeholder="Auto-calculated" readonly style="background: #f1f5f9;">
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="processShopStockOrder()">📦 Process Shop Stock Order (Restock Inventory)</button>
+    </div>
+
+    <!-- INCOMING INVENTORY REORDER REQUESTS TABLE -->
+    <div class="card" id="reorderRequestsCard">
+        <h2>
+            📩 Incoming Inventory Stock Reorder Requests
+            <button class="btn btn-primary btn-sm" onclick="loadIncomingStockRequests()">🔄 Refresh Requests</button>
+        </h2>
+        <table id="incomingRequestsTable">
+            <thead>
+            <tr>
+                <th>Req ID</th>
+                <th>Spare Part ID & Name</th>
+                <th>Brand</th>
+                <th>Current Stock</th>
+                <th>Requested Stock Qty</th>
+                <th>Request Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CUSTOMER ORDERS TABLE (READ, UPDATE, DELETE, COMPLETE) -->
+    <div class="card">
+        <h2>
+            📋 Customer Orders List
+            <button class="btn btn-primary btn-sm" onclick="loadOrders()">🔄 Refresh</button>
+        </h2>
+        <table id="ordersTable">
+            <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer ID</th>
+                <th>Spare Part ID</th>
+                <th>Qty</th>
+                <th>Unit Price (LKR)</th>
+                <th>Total (LKR)</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- COMPLETED SALES / INVOICES TABLE (READ, UPDATE, DELETE) -->
+    <div class="card">
+        <h2>
+            🧾 Completed Sales & Invoices
+            <button class="btn btn-primary btn-sm" onclick="loadSales()">🔄 Refresh</button>
+        </h2>
+        <table id="salesTable">
+            <thead>
+            <tr>
+                <th>Sale ID</th>
+                <th>Invoice Number</th>
+                <th>Order ID</th>
+                <th>Customer ID</th>
+                <th>Sale Date</th>
+                <th>Payment Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
+
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
+
+    const API_ORDERS = '/api/orders';
+    const API_SALES = '/api/sales';
+    const API_STOCK_REQUESTS = '/api/stock-requests';
+    const API_CUSTOMERS = '/api/customers';
+    const API_PARTS = '/api/parts';
+    let allCustomersList = [];
+    let allPartsList = [];
+
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (!input || !errSpan) return true;
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function populateCustomerSuggestions(customers) {
+        const datalist = document.getElementById('customerSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        customers.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = `#${c.customerId} - ${c.name} (${c.email || c.phone || 'No Contact'})`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function populateSparePartSuggestions(parts) {
+        const datalist = document.getElementById('sparePartSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        parts.forEach(p => {
+            const opt = document.createElement('option');
+            const priceStr = p.unitPrice != null ? ` - $${p.unitPrice.toFixed(2)}` : '';
+            opt.value = `#${p.sparePartId} - ${p.partName} (${p.brand || 'N/A'})${priceStr}`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function findMatchingCustomer(inputValue) {
+        if (!inputValue) return null;
+        const val = inputValue.trim().toLowerCase();
+
+        const numMatch = val.match(/^#?(\d+)/);
+        if (numMatch) {
+            const idNum = parseInt(numMatch[1]);
+            const foundById = allCustomersList.find(c => c.customerId === idNum);
+            if (foundById) return foundById;
+        }
+
+        const foundByText = allCustomersList.find(c => 
+            (c.name && c.name.toLowerCase() === val) ||
+            (c.email && c.email.toLowerCase() === val) ||
+            (`#${c.customerId} - ${c.name} (${c.email || c.phone || 'No Contact'})`.toLowerCase() === val)
+        );
+
+        return foundByText || null;
+    }
+
+    function findMatchingPart(inputValue) {
+        if (!inputValue) return null;
+        const val = inputValue.trim().toLowerCase();
+
+        const numMatch = val.match(/^#?(\d+)/);
+        if (numMatch) {
+            const idNum = parseInt(numMatch[1]);
+            const foundById = allPartsList.find(p => p.sparePartId === idNum);
+            if (foundById) return foundById;
+        }
+
+        const foundByText = allPartsList.find(p => 
+            (p.partName && p.partName.toLowerCase() === val) ||
+            (p.brand && p.brand.toLowerCase() === val) ||
+            (`#${p.sparePartId} - ${p.partName} (${p.brand || 'N/A'})`.toLowerCase() === val)
+        );
+
+        return foundByText || null;
+    }
+
+    function onCustomerInputChanged() {
+        const inputVal = document.getElementById('customerSearchInput').value;
+        const hiddenId = document.getElementById('customerId');
+
+        if (!inputVal || !inputVal.trim()) {
+            hiddenId.value = '';
+            validateCustomerInput();
+            return;
+        }
+
+        const customer = findMatchingCustomer(inputVal);
+        if (customer) {
+            hiddenId.value = customer.customerId;
+            setFieldError('customerSearchInput', null);
+        } else {
+            hiddenId.value = '';
+            validateCustomerInput();
+        }
+    }
+
+    function onSparePartInputChanged() {
+        const inputVal = document.getElementById('sparePartSearchInput').value;
+        const hiddenId = document.getElementById('sparePartId');
+
+        if (!inputVal || !inputVal.trim()) {
+            hiddenId.value = '';
+            validateSparePartInput();
+            return;
+        }
+
+        const part = findMatchingPart(inputVal);
+        if (part) {
+            hiddenId.value = part.sparePartId;
+            if (part.unitPrice != null) {
+                document.getElementById('unitPrice').value = part.unitPrice;
+                calculateTotal();
+                validateUnitPrice();
+            }
+            setFieldError('sparePartSearchInput', null);
+        } else {
+            hiddenId.value = '';
+            validateSparePartInput();
+        }
+    }
+
+    function validateCustomerInput() {
+        const inputVal = (document.getElementById('customerSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('customerId').value;
+
+        if (!inputVal) {
+            return setFieldError('customerSearchInput', 'Customer selection/ID is required.');
+        }
+
+        if (!hiddenIdVal) {
+            return setFieldError('customerSearchInput', `No matching Customer found for "${inputVal}". Please select or type a valid registered Customer.`);
+        }
+
+        return setFieldError('customerSearchInput', null);
+    }
+
+    function validateSparePartInput() {
+        const inputVal = (document.getElementById('sparePartSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('sparePartId').value;
+
+        if (!inputVal) {
+            return setFieldError('sparePartSearchInput', 'Spare Part selection/ID is required.');
+        }
+
+        if (!hiddenIdVal) {
+            return setFieldError('sparePartSearchInput', `No matching Spare Part found for "${inputVal}". Please select or type a valid existing Spare Part.`);
+        }
+
+        return setFieldError('sparePartSearchInput', null);
+    }
+
+    function validateQuantity() {
+        const val = document.getElementById('quantity').value;
+        if (!val || parseInt(val) <= 0) {
+            return setFieldError('quantity', 'Quantity must be greater than zero (> 0).');
+        }
+        return setFieldError('quantity', null);
+    }
+
+    function validateUnitPrice() {
+        const val = document.getElementById('unitPrice').value;
+        if (val === '') {
+            return setFieldError('unitPrice', 'Unit price is required.');
+        }
+        if (parseFloat(val) < 0) {
+            return setFieldError('unitPrice', 'Unit price cannot be negative.');
+        }
+        return setFieldError('unitPrice', null);
+    }
+
+    // Auto-calculate Total Amount when Quantity or Unit Price changes
+    function calculateTotal() {
+        const qty = parseFloat(document.getElementById('quantity').value) || 0;
+        const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+        document.getElementById('totalAmount').value = (qty * price).toFixed(2);
+    }
+
+    function loadCatalogData() {
+        return Promise.all([
+            fetch(API_CUSTOMERS).then(res => res.json()).catch(() => []),
+            fetch(API_PARTS).then(res => res.json()).catch(() => [])
+        ]).then(([customers, parts]) => {
+            allCustomersList = customers;
+            allPartsList = parts;
+            populateCustomerSuggestions(customers);
+            populateSparePartSuggestions(parts);
+            loadOrders();
+            loadSales();
+        });
+    }
+
+    // --- 1. CREATE ORDER ---
+    function createOrder() {
+        showAlert(null);
+        const vCust = validateCustomerInput();
+        const vPart = validateSparePartInput();
+        const vQty = validateQuantity();
+        const vPrice = validateUnitPrice();
+
+        if (!vCust || !vPart || !vQty || !vPrice) {
+            showAlert("Please select a valid registered Customer & Spare Part before submitting!");
+            return;
+        }
+
+        const customerId = document.getElementById('customerId').value;
+        const sparePartId = document.getElementById('sparePartId').value;
+        const quantity = document.getElementById('quantity').value;
+        const unitPrice = document.getElementById('unitPrice').value;
+        const totalAmount = document.getElementById('totalAmount').value;
+
+        const payload = {
+            customerId: parseInt(customerId),
+            sparePartId: parseInt(sparePartId),
+            quantity: parseInt(quantity),
+            unitPrice: parseFloat(unitPrice),
+            totalAmount: parseFloat(totalAmount),
+            orderStatus: "Pending"
+        };
+
+        fetch(API_ORDERS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to create order");
+            }
+            return data;
+        })
+        .then(data => {
+            alert(`✅ Order #${data.orderId} created successfully for Customer #${data.customerId}!`);
+            clearOrderForm();
+            loadOrders();
+        })
+        .catch(err => showAlert(err.message));
+    }
+
+    function clearOrderForm() {
+        document.getElementById('customerSearchInput').value = '';
+        document.getElementById('customerId').value = '';
+        document.getElementById('sparePartSearchInput').value = '';
+        document.getElementById('sparePartId').value = '';
+        document.getElementById('quantity').value = '';
+        document.getElementById('unitPrice').value = '';
+        document.getElementById('totalAmount').value = '';
+        setFieldError('customerSearchInput', null);
+        setFieldError('sparePartSearchInput', null);
+        setFieldError('quantity', null);
+        setFieldError('unitPrice', null);
+        showAlert(null);
+    }
+
+    // --- 2. READ ORDERS ---
+    function loadOrders() {
+        fetch(API_ORDERS)
+        .then(res => res.json())
+        .then(orders => {
+            const tbody = document.querySelector('#ordersTable tbody');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No customer orders found. Create one above!</td></tr>';
+                return;
+            }
+
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                const badgeClass = order.orderStatus === 'Completed' ? 'badge-completed' :
+                                   order.orderStatus === 'Cancelled' ? 'badge-cancelled' : 'badge-pending';
+
+                const custObj = allCustomersList.find(c => c.customerId === order.customerId);
+                const custDisplay = custObj ? `${custObj.name} (#${custObj.customerId})` : `Cust #${order.customerId}`;
+
+                const partObj = allPartsList.find(p => p.sparePartId === order.sparePartId);
+                const partDisplay = partObj ? `${partObj.partName} (#${partObj.sparePartId})` : `Part #${order.sparePartId || 'N/A'}`;
+
+                const orderActionsHtml = isCanEdit ? `
+                        ${order.orderStatus === 'Pending' ?
+                            `<button class="btn btn-success btn-sm" onclick="completeSale(${order.orderId})">✅ Complete Sale</button>` : ''}
+                        <button class="btn btn-warning btn-sm" onclick="editOrder(${order.orderId}, '${order.orderStatus}', ${order.totalAmount})">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.orderId})">🗑️ Delete</button>
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
+
+                const uPriceStr = 'LKR ' + Number(order.unitPrice || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const tAmountStr = 'LKR ' + Number(order.totalAmount || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                tr.innerHTML = `
+                    <td><strong>#${order.orderId}</strong></td>
+                    <td><strong>${custDisplay}</strong></td>
+                    <td><strong>${partDisplay}</strong></td>
+                    <td>${order.quantity || 1}</td>
+                    <td>${uPriceStr}</td>
+                    <td><strong>${tAmountStr}</strong></td>
+                    <td><span class="badge ${badgeClass}">${order.orderStatus}</span></td>
+                    <td class="actions-cell">${orderActionsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // --- 3. UPDATE ORDER ---
+    function editOrder(orderId, currentStatus, currentTotal) {
+        const newStatus = prompt(`Update status for Order #${orderId} (Pending, Processing, Completed, Cancelled):`, currentStatus);
+        if (!newStatus) return;
+
+        const newTotalStr = prompt(`Update Total Amount ($) for Order #${orderId}:`, currentTotal);
+        if (newTotalStr === null) return;
+
+        const payload = {
+            orderStatus: newStatus,
+            totalAmount: parseFloat(newTotalStr)
+        };
+
+        fetch(`${API_ORDERS}/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Order #${orderId} updated!`);
+            loadOrders();
+        });
+    }
+
+    // --- 4. DELETE ORDER ---
+    function deleteOrder(orderId) {
+        if (!confirm(`Are you sure you want to cancel/delete Order #${orderId}?`)) return;
+
+        fetch(`${API_ORDERS}/${orderId}`, { method: 'DELETE' })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadOrders();
+        });
+    }
+
+    // --- 5. COMPLETE SALE (Generates Invoice) ---
+    function completeSale(orderId) {
+        fetch(`${API_ORDERS}/${orderId}/complete?paymentStatus=Paid`, { method: 'POST' })
+        .then(res => res.json())
+        .then(sale => {
+            if (confirm(`🎉 Sale Completed! Invoice #${sale.invoiceNumber} generated for Sale #${sale.saleId}.\n\n🛡️ Warranty fields have been automatically prepared.\nWould you like to open Warranty Management to save the Warranty now?`)) {
+                window.location.href = `/warranty.html?saleId=${sale.saleId}`;
+            } else {
+                loadOrders();
+                loadSales();
+            }
+        });
+    }
+
+    // --- 6. READ SALES ---
+    function loadSales() {
+        fetch(API_SALES)
+        .then(res => res.json())
+        .then(sales => {
+            const tbody = document.querySelector('#salesTable tbody');
+            tbody.innerHTML = '';
+
+            if (sales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No completed sales yet. Complete a pending order above!</td></tr>';
+                return;
+            }
+
+            sales.forEach(sale => {
+                const tr = document.createElement('tr');
+                const dateStr = sale.saleDate ? new Date(sale.saleDate).toLocaleString() : 'N/A';
+
+                const custObj = allCustomersList.find(c => c.customerId === sale.customerId);
+                const custDisplay = custObj ? `${custObj.name} (#${custObj.customerId})` : `Cust #${sale.customerId}`;
+
+                const saleActionsHtml = isCanEdit ? `
+                        <button class="btn btn-primary btn-sm" onclick="window.location.href='/warranty.html?saleId=${sale.saleId}'">🛡️ Warranty</button>
+                        <button class="btn btn-warning btn-sm" onclick="editSaleStatus(${sale.saleId}, '${sale.paymentStatus}')">💳 Update Payment</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSale(${sale.saleId})">🗑️ Delete</button>
+                ` : `<button class="btn btn-primary btn-sm" onclick="window.location.href='/warranty.html?saleId=${sale.saleId}'">🛡️ Warranty</button> <span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 Read Only</span>`;
+
+                tr.innerHTML = `
+                    <td><strong>#${sale.saleId}</strong></td>
+                    <td><code>${sale.invoiceNumber}</code></td>
+                    <td>Order #${sale.orderId}</td>
+                    <td><strong>${custDisplay}</strong></td>
+                    <td>${dateStr}</td>
+                    <td><span class="badge badge-paid">${sale.paymentStatus}</span></td>
+                    <td class="actions-cell">${saleActionsHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // --- 7. UPDATE SALE PAYMENT STATUS ---
+    function editSaleStatus(saleId, currentStatus) {
+        const newStatus = prompt(`Update Payment Status for Sale #${saleId} (Paid, Pending, Refunded):`, currentStatus);
+        if (!newStatus) return;
+
+        fetch(`${API_SALES}/${saleId}?paymentStatus=${encodeURIComponent(newStatus)}`, { method: 'PUT' })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Sale #${saleId} payment status updated to: ${updated.paymentStatus}`);
+            loadSales();
+        });
+    }
+
+    // --- 8. DELETE SALE ---
+    function deleteSale(saleId) {
+        if (!confirm(`Are you sure you want to delete Sale record #${saleId}?`)) return;
+
+        fetch(`${API_SALES}/${saleId}`, { method: 'DELETE' })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadSales();
+        });
+    }
+
+    // --- 9. INCOMING STOCK REORDER REQUESTS & SHOP'S OWN ORDERS ---
+    function showShopAlert(msg) {
+        const box = document.getElementById('shopAlertBox');
+        if (!box) return;
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function validateShopSparePartId() {
+        const val = document.getElementById('shopSparePartId').value;
+        if (!val || parseInt(val) <= 0) {
+            return setFieldError('shopSparePartId', 'Spare Part ID must be a positive integer (> 0).');
+        }
+        return setFieldError('shopSparePartId', null);
+    }
+
+    function validateShopQuantity() {
+        const val = document.getElementById('shopQuantity').value;
+        if (!val || parseInt(val) <= 0) {
+            return setFieldError('shopQuantity', 'Restock quantity must be greater than zero (> 0).');
+        }
+        return setFieldError('shopQuantity', null);
+    }
+
+    function calculateShopTotal() {
+        const qty = parseFloat(document.getElementById('shopQuantity').value) || 0;
+        const price = parseFloat(document.getElementById('shopUnitPrice').value) || 0;
+        document.getElementById('shopTotalAmount').value = (qty * price).toFixed(2);
+    }
+
+    function fetchShopPartDetails() {
+        const spId = document.getElementById('shopSparePartId').value;
+        if (!spId || parseInt(spId) <= 0) {
+            document.getElementById('shopPartName').value = '';
+            return;
+        }
+        fetch(`/api/parts/${spId}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Part not found');
+            return res.json();
+        })
+        .then(part => {
+            document.getElementById('shopPartName').value = `${part.partName} (${part.brand || 'N/A'})`;
+            if (part.unitPrice && !document.getElementById('shopUnitPrice').value) {
+                document.getElementById('shopUnitPrice').value = part.unitPrice;
+                calculateShopTotal();
+            }
+            setFieldError('shopSparePartId', null);
+        })
+        .catch(() => {
+            document.getElementById('shopPartName').value = `Part #${spId}`;
+        });
+    }
+
+    function processShopStockOrder() {
+        showShopAlert(null);
+        const vPart = validateShopSparePartId();
+        const vQty = validateShopQuantity();
+
+        if (!vPart || !vQty) {
+            showShopAlert('Please correct the highlighted errors before submitting the shop stock order.');
+            return;
+        }
+
+        const sparePartId = parseInt(document.getElementById('shopSparePartId').value);
+        const restockQty = parseInt(document.getElementById('shopQuantity').value);
+        const requestId = document.getElementById('shopRequestId').value;
+        const supplierInfo = document.getElementById('supplierId').value || 'Direct Restock Procurement';
+
+        // 1. Fetch current part details
+        fetch(`/api/parts/${sparePartId}`)
+        .then(async res => {
+            if (!res.ok) throw new Error(`Spare Part #${sparePartId} not found in catalog.`);
+            return res.json();
+        })
+        .then(part => {
+            // 2. Increase stock quantity by restockQty
+            const newQty = (part.stockQuantity || 0) + restockQty;
+            const updatedPart = { ...part, stockQuantity: newQty };
+
+            return fetch(`/api/parts/${sparePartId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedPart)
+            }).then(r => r.json()).then(savedPart => ({ savedPart, newQty }));
+        })
+        .then(async ({ savedPart, newQty }) => {
+            // 3. Post Inventory Restock Log to /api/inventory-records
+            const invRecord = {
+                sparePartId: sparePartId,
+                stockInQuantity: restockQty,
+                stockOutQuantity: 0,
+                currentQuantity: newQty,
+                movementDate: new Date().toISOString(),
+                notes: `Restock Order Processed - Supplier: ${supplierInfo}${requestId ? ' (Req #' + requestId + ')' : ''}`
+            };
+
+            await fetch('/api/inventory-records', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invRecord)
+            });
+
+            // 4. Update stock request status to "Order Placed" if coming from request
+            if (requestId) {
+                await fetch(`${API_STOCK_REQUESTS}/${requestId}?status=Order%20Placed`, { method: 'PUT' });
+            }
+
+            alert(`✅ Shop Stock Order processed successfully!\n\nPart #${savedPart.sparePartId} ("${savedPart.partName}") stock increased by +${restockQty} units (Total In Stock: ${savedPart.stockQuantity} units).\nRestock record logged in Inventory.`);
+            clearShopOrderForm();
+            loadIncomingStockRequests();
+        })
+        .catch(err => showShopAlert(err.message));
+    }
+
+    function clearShopOrderForm() {
+        document.getElementById('shopRequestId').value = '';
+        document.getElementById('shopSparePartId').value = '';
+        document.getElementById('shopPartName').value = '';
+        document.getElementById('supplierId').value = '';
+        document.getElementById('shopQuantity').value = '';
+        document.getElementById('shopUnitPrice').value = '';
+        document.getElementById('shopTotalAmount').value = '';
+        setFieldError('shopSparePartId', null);
+        setFieldError('shopQuantity', null);
+        showShopAlert(null);
+    }
+
+    function loadIncomingStockRequests() {
+        fetch(API_STOCK_REQUESTS)
+        .then(res => res.json())
+        .then(requests => {
+            const tbody = document.querySelector('#incomingRequestsTable tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No incoming stock reorder requests from Inventory Management.</td></tr>';
+                return;
+            }
+
+            requests.forEach(req => {
+                const tr = document.createElement('tr');
+                const isPlaced = req.requestStatus === 'Order Placed' || req.requestStatus === 'Fulfilled' || req.requestStatus === 'Completed';
+                const badgeClass = isPlaced ? 'badge-completed' : 'badge-pending';
+                const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleString() : 'N/A';
+
+                const actionCellHtml = !isCanEdit ? `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>` :
+                    (isPlaced ? `<span class="badge badge-completed" style="padding: 6px 12px; font-size: 13px;">✅ Order Placed (Done)</span>` :
+                    `<button class="btn btn-primary btn-sm" onclick="quickPlaceOrderFromRequest(${req.requestId}, ${req.sparePartId}, ${req.requestedQuantity})">🛒 Place Order</button>`);
+
+                tr.innerHTML = `
+                    <td><strong>#${req.requestId}</strong></td>
+                    <td><strong>${req.partName || 'Part #' + req.sparePartId} (Part #${req.sparePartId})</strong></td>
+                    <td>${req.brand || 'N/A'}</td>
+                    <td>${req.currentStock != null ? req.currentStock : 0} units</td>
+                    <td><strong style="color: #2563eb; font-size: 15px;">+${req.requestedQuantity}</strong> units</td>
+                    <td>${dateStr}</td>
+                    <td><span class="badge ${badgeClass}">${req.requestStatus || 'Pending Reorder'}</span></td>
+                    <td class="actions-cell">
+                        ${actionCellHtml}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function quickPlaceOrderFromRequest(requestId, sparePartId, requestedQuantity) {
+        document.getElementById('shopRequestId').value = requestId;
+        document.getElementById('shopSparePartId').value = sparePartId;
+        document.getElementById('shopQuantity').value = requestedQuantity;
+        
+        fetchShopPartDetails();
+
+        setFieldError('shopSparePartId', null);
+        setFieldError('shopQuantity', null);
+        showShopAlert(null);
+
+        // Smooth scroll to Shop's Own Orders card
+        document.getElementById('shopOrderCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    const isCanEdit = ['ADMIN', 'SALES_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    // Load all tables and attach real-time input listeners
+    window.onload = () => {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Creating orders and processing sales are restricted to Admin & Sales Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Cards
+            const orderCard = document.getElementById('customerOrderCard');
+            if (orderCard) orderCard.style.display = 'none';
+            const shopCard = document.getElementById('shopOrderCard');
+            if (shopCard) shopCard.style.display = 'none';
+        }
+
+        loadCatalogData();
+        loadIncomingStockRequests();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const custInput = document.getElementById('customerSearchInput');
+            if (custInput) custInput.addEventListener(evt, validateCustomerInput);
+            const spInput = document.getElementById('sparePartSearchInput');
+            if (spInput) spInput.addEventListener(evt, validateSparePartInput);
+            const qty = document.getElementById('quantity');
+            if (qty) qty.addEventListener(evt, validateQuantity);
+            const uPrice = document.getElementById('unitPrice');
+            if (uPrice) uPrice.addEventListener(evt, validateUnitPrice);
+            const sSpId = document.getElementById('shopSparePartId');
+            if (sSpId) sSpId.addEventListener(evt, validateShopSparePartId);
+            const sQty = document.getElementById('shopQuantity');
+            if (sQty) sQty.addEventListener(evt, validateShopQuantity);
+        });
+    };
+</script>
+
+</body>
+</html>
