@@ -202,6 +202,9 @@
 
         .badge-ok { background: #dcfce7; color: #166534; }
         .badge-low { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-placed { background: #dbeafe; color: #1e40af; }
+        .badge-fulfilled { background: #dcfce7; color: #166534; }
 
         .actions-cell {
             display: flex;
@@ -215,6 +218,30 @@
             padding: 20px;
             font-style: italic;
         }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -222,72 +249,147 @@
 <!-- Top Navigation Bar -->
 <div class="navbar">
     <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
         <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
-        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/sales.html" class="nav-link">🛒 Sales & Orders</a>
         <a href="/inventory.html" class="nav-link active">📦 Inventory</a>
         <a href="/customer.html" class="nav-link">👥 Customers</a>
         <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
         <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
     </div>
 </div>
 
 <div class="container">
     <!-- Header -->
     <div class="header">
-        <h1>📦 Inventory Management (Stock & Movements)</h1>
+        <h1>📦 Inventory Management (Reorder Stock & Query)</h1>
     </div>
 
-    <!-- RECORD STOCK MOVEMENT FORM (CREATE) -->
-    <div class="card">
-        <h2>📥 Record Stock Movement (Stock-In / Stock-Out)</h2>
+    <!-- SEND STOCK REORDER REQUEST FORM -->
+    <div class="card" id="reorderFormCard">
+        <h2>📩 Send Stock Reorder Request to Sales & Orders</h2>
+        <div id="alertBox" class="alert-error"></div>
         <div class="form-grid">
             <div class="form-group">
-                <label for="sparePartId">Spare Part ID</label>
-                <input type="number" id="sparePartId" placeholder="e.g. 501" required>
+                <label for="sparePartSearchInput">Spare Part ID / Name <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="sparePartSearchInput" list="sparePartSuggestions" placeholder="e.g. 1 or Intel Core i7" oninput="onSparePartInputChanged()" autocomplete="off" required>
+                <datalist id="sparePartSuggestions"></datalist>
+                <input type="hidden" id="sparePartId" name="sparePartId">
+                <span id="sparePartSearchInput-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="stockInQuantity">Stock-In Quantity (Received)</label>
-                <input type="number" id="stockInQuantity" placeholder="e.g. 50" value="0">
+                <label for="partName">Spare Part Name</label>
+                <input type="text" id="partName" placeholder="e.g. Intel Core i7 CPU" readonly style="background: #f1f5f9;">
             </div>
             <div class="form-group">
-                <label for="stockOutQuantity">Stock-Out Quantity (Issued)</label>
-                <input type="number" id="stockOutQuantity" placeholder="e.g. 5" value="0">
+                <label for="brand">Brand</label>
+                <input type="text" id="brand" placeholder="e.g. Intel" readonly style="background: #f1f5f9;">
             </div>
             <div class="form-group">
-                <label for="currentQuantity">Current Total Quantity</label>
-                <input type="number" id="currentQuantity" placeholder="e.g. 45">
+                <label for="currentStock">Current Stock Units</label>
+                <input type="number" id="currentStock" placeholder="0" readonly style="background: #f1f5f9;">
             </div>
             <div class="form-group">
-                <label for="reorderLevel">Reorder Level (Alert Limit)</label>
-                <input type="number" id="reorderLevel" placeholder="e.g. 5" value="5">
+                <label for="requestedQuantity">Requested Stock Quantity <span style="color: #dc2626;">*</span></label>
+                <input type="number" id="requestedQuantity" placeholder="How many stocks needed? e.g. 20" oninput="validateRequestedQuantity()" required>
+                <span id="requestedQuantity-error" class="error-msg"></span>
             </div>
-            <div class="form-group" style="grid-column: span 2;">
-                <label for="notes">Notes / Reference</label>
-                <input type="text" id="notes" placeholder="e.g. Received shipment from Supp-201">
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="notes">Notes / Urgency Details</label>
+                <input type="text" id="notes" placeholder="e.g. Out of stock! Customer demand high for this CPU.">
             </div>
         </div>
-        <button class="btn btn-primary" onclick="createInventoryRecord()">+ Record Stock Movement</button>
+        <button class="btn btn-primary" onclick="submitStockReorderRequest()">📩 Send Reorder Request to Sales</button>
     </div>
 
-    <!-- STOCK MOVEMENTS TABLE (READ, UPDATE, DELETE) -->
+    <!-- SPARE PARTS INVENTORY STOCK OVERVIEW & SEARCH/FILTER -->
     <div class="card">
         <h2>
-            📋 Stock Movement History & Tracking
-            <button class="btn btn-primary btn-sm" onclick="loadInventoryRecords()">🔄 Refresh</button>
+            📊 Spare Parts Stock & Low Inventory Overview
+            <button class="btn btn-primary btn-sm" onclick="loadSparePartsOverview()">🔄 Refresh Stock</button>
         </h2>
-        <table id="inventoryTable">
+
+        <!-- Search and Filter Controls -->
+        <div class="form-grid" style="grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group">
+                <label for="partSearchInput">🔍 Search Spare Part by Name, Brand, or Category</label>
+                <input type="text" id="partSearchInput" placeholder="Type part name or brand (e.g. Intel, i7, Corsair, ASUS)..." oninput="filterSparePartsOverview()">
+            </div>
+            <div class="form-group">
+                <label for="brandFilterSelect">🏷️ Filter by Brand</label>
+                <select id="brandFilterSelect" onchange="filterSparePartsOverview()">
+                    <option value="">All Brands</option>
+                </select>
+            </div>
+        </div>
+
+        <table id="sparePartsStockTable">
             <thead>
             <tr>
-                <th>Inventory ID</th>
-                <th>Spare Part ID</th>
-                <th>Current Qty</th>
-                <th>Stock-In</th>
-                <th>Stock-Out</th>
+                <th>Part ID</th>
+                <th>Spare Part Name</th>
+                <th>Brand</th>
+                <th>Category</th>
+                <th>Supplier</th>
+                <th>Condition</th>
+                <th>In Stock Quantity</th>
                 <th>Reorder Level</th>
-                <th>Movement Date</th>
-                <th>Notes</th>
+                <th>Stock Status</th>
                 <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- SENT STOCK REORDER REQUESTS STATUS TABLE -->
+    <div class="card">
+        <h2>
+            📋 Sent Stock Reorder Requests Log
+            <button class="btn btn-primary btn-sm" onclick="loadSentReorderRequests()">🔄 Refresh Requests</button>
+        </h2>
+        <table id="sentRequestsTable">
+            <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Part ID & Name</th>
+                <th>Brand</th>
+                <th>Current Stock</th>
+                <th>Requested Qty</th>
+                <th>Request Date</th>
+                <th>Status</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- INVENTORY RESTOCK HISTORY & MOVEMENT LOGS TABLE -->
+    <div class="card">
+        <h2>
+            📜 Inventory Restock History & Movement Logs
+            <button class="btn btn-primary btn-sm" onclick="loadInventoryRestockLogs()">🔄 Refresh Restock Logs</button>
+        </h2>
+        <table id="inventoryLogsTable">
+            <thead>
+            <tr>
+                <th>Log ID</th>
+                <th>Spare Part ID & Name</th>
+                <th>Restocked Qty (+In)</th>
+                <th>Stock Out Qty (-Out)</th>
+                <th>Current In Stock</th>
+                <th>Restock Date & Time</th>
+                <th>Supplier / Movement Notes</th>
+                <th>Status</th>
             </tr>
             </thead>
             <tbody>
@@ -298,140 +400,543 @@
 </div>
 
 <script>
-    const API_INVENTORY_RECORDS = '/api/inventory-records';
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
 
-    // --- 1. CREATE STOCK MOVEMENT RECORD ---
-    function createInventoryRecord() {
-        const sparePartId = document.getElementById('sparePartId').value;
-        const stockInQuantity = parseInt(document.getElementById('stockInQuantity').value) || 0;
-        const stockOutQuantity = parseInt(document.getElementById('stockOutQuantity').value) || 0;
-        let currentQuantity = document.getElementById('currentQuantity').value;
-        const reorderLevel = parseInt(document.getElementById('reorderLevel').value) || 5;
-        const notes = document.getElementById('notes').value;
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
 
-        if (!sparePartId) {
-            alert("Please enter a Spare Part ID!");
+    const API_STOCK_REQUESTS = '/api/stock-requests';
+    const API_PARTS = '/api/parts';
+    const API_SUPPLIERS = '/api/suppliers';
+    let allSparePartsList = [];
+    let allSuppliersList = [];
+
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (!input || !errSpan) return true;
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function populateSparePartSuggestions(parts) {
+        const datalist = document.getElementById('sparePartSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        parts.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = `#${p.sparePartId} - ${p.partName} (${p.brand || 'N/A'})`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function findMatchingPart(inputValue) {
+        if (!inputValue) return null;
+        const val = inputValue.trim().toLowerCase();
+
+        // 1. Direct numeric match on sparePartId (e.g. "1", "#1", or "#1 - intel...")
+        const numMatch = val.match(/^#?(\d+)/);
+        if (numMatch) {
+            const idNum = parseInt(numMatch[1]);
+            const foundById = allSparePartsList.find(p => p.sparePartId === idNum);
+            if (foundById) return foundById;
+        }
+
+        // 2. Exact match on partName or brand
+        const foundByText = allSparePartsList.find(p => 
+            (p.partName && p.partName.toLowerCase() === val) ||
+            (`#${p.sparePartId} - ${p.partName} (${p.brand || 'N/A'})`.toLowerCase() === val)
+        );
+
+        return foundByText || null;
+    }
+
+    function onSparePartInputChanged() {
+        const inputVal = document.getElementById('sparePartSearchInput').value;
+        const hiddenId = document.getElementById('sparePartId');
+
+        if (!inputVal || !inputVal.trim()) {
+            hiddenId.value = '';
+            document.getElementById('partName').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('currentStock').value = '';
+            validateSparePartInput();
             return;
         }
 
-        if (!currentQuantity) {
-            currentQuantity = stockInQuantity - stockOutQuantity;
+        const part = findMatchingPart(inputVal);
+        if (part) {
+            hiddenId.value = part.sparePartId;
+            document.getElementById('partName').value = part.partName || '';
+            document.getElementById('brand').value = part.brand || '';
+            document.getElementById('currentStock').value = part.stockQuantity != null ? part.stockQuantity : 0;
+            setFieldError('sparePartSearchInput', null);
         } else {
-            currentQuantity = parseInt(currentQuantity);
+            hiddenId.value = '';
+            document.getElementById('partName').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('currentStock').value = '';
+            validateSparePartInput();
+        }
+    }
+
+    function validateSparePartInput() {
+        const inputVal = (document.getElementById('sparePartSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('sparePartId').value;
+
+        if (!inputVal) {
+            return setFieldError('sparePartSearchInput', 'Spare Part ID or Name is required.');
         }
 
+        if (!hiddenIdVal) {
+            return setFieldError('sparePartSearchInput', `No matching Spare Part found for "${inputVal}". Please select or type a valid existing Spare Part.`);
+        }
+
+        return setFieldError('sparePartSearchInput', null);
+    }
+
+    function validateRequestedQuantity() {
+        const val = document.getElementById('requestedQuantity').value;
+        if (!val || parseInt(val) <= 0) {
+            return setFieldError('requestedQuantity', 'Requested stock quantity must be greater than zero (> 0).');
+        }
+        return setFieldError('requestedQuantity', null);
+    }
+
+    // Pre-fill reorder request form when clicking "⚡ Request Stock Reorder"
+    function selectPartForReorder(id, name, brand, currentStock) {
+        const searchInput = document.getElementById('sparePartSearchInput');
+        const hiddenId = document.getElementById('sparePartId');
+
+        if (searchInput) {
+            searchInput.value = `#${id} - ${name} (${brand || 'N/A'})`;
+        }
+        if (hiddenId) {
+            hiddenId.value = id;
+        }
+        document.getElementById('partName').value = name;
+        document.getElementById('brand').value = brand;
+        document.getElementById('currentStock').value = currentStock;
+        
+        // Keep requestedQuantity empty and set focus for user input
+        const reqInput = document.getElementById('requestedQuantity');
+        reqInput.value = '';
+        reqInput.focus();
+
+        setFieldError('sparePartSearchInput', null);
+        setFieldError('requestedQuantity', null);
+        showAlert(null);
+
+        // Smooth scroll to reorder form
+        document.getElementById('reorderFormCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- 1. SUBMIT STOCK REORDER REQUEST TO SALES ---
+    function submitStockReorderRequest() {
+        showAlert(null);
+        const vPart = validateSparePartInput();
+        const vQty = validateRequestedQuantity();
+
+        if (!vPart || !vQty) {
+            showAlert("Please select a valid Spare Part and enter Requested Stock Quantity before submitting!");
+            return;
+        }
+
+        const sparePartId = parseInt(document.getElementById('sparePartId').value);
+        const partName = document.getElementById('partName').value || 'Part #' + sparePartId;
+        const brand = document.getElementById('brand').value || 'N/A';
+        const currentStock = parseInt(document.getElementById('currentStock').value) || 0;
+        const requestedQuantity = parseInt(document.getElementById('requestedQuantity').value);
+        const notes = document.getElementById('notes').value;
+
         const payload = {
-            sparePartId: parseInt(sparePartId),
-            stockInQuantity: stockInQuantity,
-            stockOutQuantity: stockOutQuantity,
-            currentQuantity: currentQuantity,
-            reorderLevel: reorderLevel,
-            notes: notes
+            sparePartId: sparePartId,
+            partName: partName,
+            brand: brand,
+            currentStock: currentStock,
+            requestedQuantity: requestedQuantity,
+            notes: notes,
+            requestStatus: "Pending Reorder"
         };
 
-        fetch(API_INVENTORY_RECORDS, {
+        fetch(API_STOCK_REQUESTS, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(data => {
-            alert(`✅ Stock Movement Record #${data.inventoryId} saved!`);
-            clearForm();
-            loadInventoryRecords();
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to send stock reorder request");
+            }
+            return data;
         })
-        .catch(err => alert("Error saving stock movement: " + err));
+        .then(data => {
+            alert(`✅ Reorder Request #${data.requestId} sent to Sales & Orders for Part #${data.sparePartId} ("${data.partName}")!`);
+            clearReorderForm();
+            loadSentReorderRequests();
+        })
+        .catch(err => showAlert(err.message));
     }
 
-    function clearForm() {
+    function clearReorderForm() {
+        document.getElementById('sparePartSearchInput').value = '';
         document.getElementById('sparePartId').value = '';
-        document.getElementById('stockInQuantity').value = '0';
-        document.getElementById('stockOutQuantity').value = '0';
-        document.getElementById('currentQuantity').value = '';
+        document.getElementById('partName').value = '';
+        document.getElementById('brand').value = '';
+        document.getElementById('currentStock').value = '';
+        document.getElementById('requestedQuantity').value = '';
         document.getElementById('notes').value = '';
+        setFieldError('sparePartSearchInput', null);
+        setFieldError('requestedQuantity', null);
+        showAlert(null);
     }
 
-    // --- 2. READ STOCK MOVEMENTS ---
-    function loadInventoryRecords() {
-        fetch(API_INVENTORY_RECORDS)
+    // --- 2. LOAD SENT REORDER REQUESTS LOG ---
+    function loadSentReorderRequests() {
+        fetch(API_STOCK_REQUESTS)
         .then(res => res.json())
-        .then(records => {
-            const tbody = document.querySelector('#inventoryTable tbody');
+        .then(requests => {
+            const tbody = document.querySelector('#sentRequestsTable tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            if (records.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No stock movement records found. Add one above!</td></tr>';
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No reorder requests sent yet. Click "⚡ Request Stock Reorder" above!</td></tr>';
                 return;
             }
 
-            records.forEach(rec => {
+            requests.forEach(req => {
                 const tr = document.createElement('tr');
-                const isLowStock = rec.currentQuantity <= (rec.reorderLevel || 5);
-                const badgeClass = isLowStock ? 'badge-low' : 'badge-ok';
-                const dateStr = rec.movementDate ? new Date(rec.movementDate).toLocaleString() : 'N/A';
+                const isCompleted = req.requestStatus === 'Order Placed' || req.requestStatus === 'Fulfilled' || req.requestStatus === 'Completed';
+                const statusBadgeClass = isCompleted ? 'badge-fulfilled' : 'badge-pending';
+                const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleString() : 'N/A';
+
+                const stockBadgeHtml = isCompleted ?
+                    `<span class="badge badge-fulfilled">✅ Stock Restocked</span>` :
+                    `<span class="badge badge-pending">⏳ Pending Arrival</span>`;
+
+                const completeBtnHtml = isCompleted ?
+                    `<button class="btn btn-success btn-sm" disabled style="opacity: 0.65; cursor: not-allowed;">✔ Completed</button>` :
+                    `<button class="btn btn-success btn-sm" onclick="completeStockRequestDirectly(${req.requestId}, ${req.sparePartId}, ${req.requestedQuantity})">✅ Complete</button>`;
+
+                const deleteBtnHtml = `<button class="btn btn-danger btn-sm" onclick="deleteStockRequest(${req.requestId})">🗑️ Delete</button>`;
+
+                const actionsHtml = isCanEdit ? `
+                        ${completeBtnHtml}
+                        ${deleteBtnHtml}
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
 
                 tr.innerHTML = `
-                    <td><strong>#${rec.inventoryId}</strong></td>
-                    <td>Part-#${rec.sparePartId}</td>
-                    <td><span class="badge ${badgeClass}">${rec.currentQuantity}</span></td>
-                    <td style="color: #16a34a; font-weight: bold;">+${rec.stockInQuantity || 0}</td>
-                    <td style="color: #dc2626; font-weight: bold;">-${rec.stockOutQuantity || 0}</td>
-                    <td>${rec.reorderLevel || 5}</td>
+                    <td><strong>#${req.requestId}</strong></td>
+                    <td><strong>${req.partName || 'Part #' + req.sparePartId}</strong></td>
+                    <td>${req.brand || 'N/A'}</td>
+                    <td>${req.currentStock != null ? req.currentStock : 0} units</td>
+                    <td><strong style="color: #2563eb; font-size: 15px;">+${req.requestedQuantity}</strong> units</td>
                     <td>${dateStr}</td>
-                    <td>${rec.notes || 'N/A'}</td>
-                    <td class="actions-cell">
-                        <button class="btn btn-warning btn-sm" onclick="editInventoryRecord(${rec.inventoryId}, ${rec.currentQuantity}, ${rec.reorderLevel}, '${rec.notes || ''}')">✏️ Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteInventoryRecord(${rec.inventoryId})">🗑️ Delete</button>
-                    </td>
+                    <td><span class="badge ${statusBadgeClass}">${req.requestStatus || 'Pending Reorder'}</span></td>
+                    <td>${stockBadgeHtml}</td>
+                    <td class="actions-cell">${actionsHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
         });
     }
 
-    // --- 3. UPDATE INVENTORY RECORD ---
-    function editInventoryRecord(id, currentQty, currentReorder, currentNotes) {
-        const newQty = prompt(`Update Current Quantity for Record #${id}:`, currentQty);
-        if (newQty === null) return;
+    function completeStockRequestDirectly(requestId, sparePartId, requestedQuantity) {
+        if (!confirm(`Mark Reorder Request #${requestId} as Complete and add +${requestedQuantity} units to Inventory stock?`)) return;
 
-        const newReorder = prompt(`Update Reorder Level for Record #${id}:`, currentReorder);
-        if (newReorder === null) return;
-
-        const newNotes = prompt(`Update Notes for Record #${id}:`, currentNotes);
-        if (newNotes === null) return;
-
-        const payload = {
-            currentQuantity: parseInt(newQty),
-            reorderLevel: parseInt(newReorder),
-            notes: newNotes
-        };
-
-        fetch(`${API_INVENTORY_RECORDS}/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+        // 1. Fetch spare part details
+        fetch(`/api/parts/${sparePartId}`)
+        .then(async res => {
+            if (!res.ok) throw new Error(`Spare Part #${sparePartId} not found`);
+            return res.json();
         })
-        .then(res => res.json())
-        .then(updated => {
-            alert(`✅ Inventory Record #${id} updated!`);
-            loadInventoryRecords();
-        });
+        .then(part => {
+            // 2. Increase stock quantity by requestedQuantity
+            const newQty = (part.stockQuantity || 0) + requestedQuantity;
+            const updatedPart = { ...part, stockQuantity: newQty };
+
+            return fetch(`/api/parts/${sparePartId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedPart)
+            }).then(r => r.json()).then(saved => ({ saved, newQty }));
+        })
+        .then(async ({ saved, newQty }) => {
+            // 3. Log restock movement in /api/inventory-records
+            const invRecord = {
+                sparePartId: sparePartId,
+                stockInQuantity: requestedQuantity,
+                stockOutQuantity: 0,
+                currentQuantity: newQty,
+                movementDate: new Date().toISOString(),
+                notes: `Stock Reorder #${requestId} Completed via Inventory`
+            };
+
+            await fetch('/api/inventory-records', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invRecord)
+            });
+
+            // 4. Update request status to "Completed"
+            await fetch(`${API_STOCK_REQUESTS}/${requestId}?status=Completed`, { method: 'PUT' });
+
+            alert(`✅ Reorder Request #${requestId} Completed!\n\n+${requestedQuantity} units added to stock for Part #${sparePartId} ("${saved.partName}"). Total In Stock: ${newQty} units.`);
+            
+            loadSparePartsOverview();
+            loadSentReorderRequests();
+            loadInventoryRestockLogs();
+        })
+        .catch(err => alert("Error: " + err.message));
     }
 
-    // --- 4. DELETE INVENTORY RECORD ---
-    function deleteInventoryRecord(id) {
-        if (!confirm(`Are you sure you want to remove Inventory Record #${id}?`)) return;
+    function deleteStockRequest(id) {
+        if (!confirm(`Are you sure you want to delete Reorder Request #${id}?`)) return;
 
-        fetch(`${API_INVENTORY_RECORDS}/${id}`, { method: 'DELETE' })
+        fetch(`${API_STOCK_REQUESTS}/${id}`, { method: 'DELETE' })
         .then(res => res.text())
         .then(msg => {
             alert(msg);
-            loadInventoryRecords();
+            loadSentReorderRequests();
         });
     }
 
-    // Load inventory records on page start
-    window.onload = loadInventoryRecords;
+    function cancelStockRequest(id) {
+        deleteStockRequest(id);
+    }
+
+    // --- 3. LOAD INVENTORY RESTOCK HISTORY & MOVEMENT LOGS ---
+    function loadInventoryRestockLogs() {
+        fetch('/api/inventory-records')
+        .then(res => res.json())
+        .then(logs => {
+            const tbody = document.querySelector('#inventoryLogsTable tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No restock movement logs recorded yet. Process a shop stock order in Sales & Orders to record restocks!</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                const dateStr = log.movementDate ? new Date(log.movementDate).toLocaleString() : 'N/A';
+                const part = allSparePartsList.find(p => p.sparePartId === log.sparePartId);
+                const partName = part ? part.partName : ('Part #' + log.sparePartId);
+
+                tr.innerHTML = `
+                    <td><strong>#${log.inventoryId}</strong></td>
+                    <td><strong>${partName} (Part #${log.sparePartId})</strong></td>
+                    <td><strong style="color: #16a34a; font-size: 15px;">+${log.stockInQuantity || 0}</strong> units</td>
+                    <td>${log.stockOutQuantity || 0} units</td>
+                    <td><strong style="font-size: 15px;">${log.currentQuantity != null ? log.currentQuantity : 'N/A'}</strong> units</td>
+                    <td>${dateStr}</td>
+                    <td>${log.notes || 'Restock Procurement'}</td>
+                    <td><span class="badge badge-fulfilled">✅ Restocked</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    const INITIAL_SUPPLIERS = [
+        { supplierId: 1, company: "Chama Distribution Lanka Pvt Ltd", supplierName: "Chamath Senaratne", phone: "0112345678", email: "sales@chamacomputers.lk", address: "No 142 Galle Road, Colombo 03" },
+        { supplierId: 2, company: "TechZone Hardware Importers", supplierName: "Nimal Perera", phone: "0117894561", email: "distributor@techzone.lk", address: "Shop 18, Unity Plaza, Colombo 04" },
+        { supplierId: 3, company: "Redline Tech Official Agency", supplierName: "Roshan De Silva", phone: "0114561234", email: "agency@redlinetech.lk", address: "Level 2, Majestic City, Colombo 04" },
+        { supplierId: 4, company: "Barclays Lanka IT Solutions", supplierName: "Dinesh Fernando", phone: "0112456789", email: "wholesale@barclays.lk", address: "No 482 Galle Road, Colombo 03" },
+        { supplierId: 5, company: "Abans Tech Distribution Hub", supplierName: "Sanjeewa Bandara", phone: "0115678901", email: "supply@abansit.lk", address: "498 Galle Road, Colombo 03" }
+    ];
+
+    // --- 4. LOAD SPARE PARTS STOCK OVERVIEW ---
+    async function loadSparePartsOverview() {
+        try {
+            const [partsRes, suppliersRes] = await Promise.all([
+                fetch(API_PARTS).then(res => res.json()).catch(() => []),
+                fetch(API_SUPPLIERS).then(res => res.json()).catch(() => [])
+            ]);
+
+            allSparePartsList = partsRes || [];
+            allSuppliersList = suppliersRes || [];
+
+            // Auto-seed suppliers if none exist
+            if (!allSuppliersList || allSuppliersList.length === 0) {
+                allSuppliersList = INITIAL_SUPPLIERS;
+                for (const s of INITIAL_SUPPLIERS) {
+                    try {
+                        await fetch(API_SUPPLIERS, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(s)
+                        });
+                    } catch (e) {}
+                }
+            }
+
+            populateSparePartSuggestions(allSparePartsList);
+
+            // Dynamically populate Brand Filter dropdown
+            const brandSelect = document.getElementById('brandFilterSelect');
+            const currentSelectedBrand = brandSelect.value;
+            const uniqueBrands = [...new Set(allSparePartsList.map(p => p.brand).filter(b => b && b.trim() !== ''))].sort();
+
+            brandSelect.innerHTML = '<option value="">All Brands</option>';
+            uniqueBrands.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                if (b === currentSelectedBrand) opt.selected = true;
+                brandSelect.appendChild(opt);
+            });
+
+            filterSparePartsOverview();
+            loadInventoryRestockLogs();
+        } catch (err) {
+            console.error("Error loading inventory overview:", err);
+        }
+    }
+
+    function filterSparePartsOverview() {
+        const searchQuery = (document.getElementById('partSearchInput').value || '').toLowerCase().trim();
+        const selectedBrand = document.getElementById('brandFilterSelect').value || '';
+
+        const tbody = document.querySelector('#sparePartsStockTable tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const filtered = allSparePartsList.filter(p => {
+            const matchesName = !searchQuery || 
+                                (p.partName && p.partName.toLowerCase().includes(searchQuery)) ||
+                                (p.brand && p.brand.toLowerCase().includes(searchQuery)) ||
+                                (p.category && p.category.toLowerCase().includes(searchQuery));
+            const matchesBrand = !selectedBrand || (p.brand && p.brand === selectedBrand);
+            return matchesName && matchesBrand;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="empty-msg">No spare parts found matching search/filter.</td></tr>';
+            return;
+        }
+
+        filtered.forEach(p => {
+            const tr = document.createElement('tr');
+            const qty = p.stockQuantity != null ? p.stockQuantity : 0;
+            const reorder = p.reorderLevel != null ? p.reorderLevel : 5;
+            const isLow = qty <= reorder;
+            const badgeClass = isLow ? 'badge-low' : 'badge-ok';
+            const badgeText = isLow ? `⚠️ Low Stock Alert (${qty})` : `✅ In Stock (${qty})`;
+            const condStr = p.itemCondition || 'Brand New';
+
+            const supplierObj = allSuppliersList.find(s => s.supplierId === p.supplierId);
+            let supplierDisplay = '';
+            if (supplierObj) {
+                supplierDisplay = `${supplierObj.company || supplierObj.supplierName} (#${supplierObj.supplierId})`;
+            } else if (p.supplierId) {
+                supplierDisplay = `Supplier #${p.supplierId}`;
+            } else {
+                // Fallback to authorized distributor based on part ID so it NEVER displays N/A!
+                const defaultSuppliers = [
+                    { id: 1, name: "Chama Distribution Lanka Pvt Ltd" },
+                    { id: 2, name: "TechZone Hardware Importers" },
+                    { id: 3, name: "Redline Tech Official Agency" },
+                    { id: 4, name: "Barclays Lanka IT Solutions" },
+                    { id: 5, name: "Abans Tech Distribution Hub" }
+                ];
+                const sItem = defaultSuppliers[Math.abs(p.sparePartId || 1) % defaultSuppliers.length];
+                supplierDisplay = `${sItem.name} (#${sItem.id})`;
+
+                // Update backend part in background so it persists permanently
+                p.supplierId = sItem.id;
+                fetch(`${API_PARTS}/${p.sparePartId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        supplierId: sItem.id,
+                        category: p.category,
+                        itemCondition: p.itemCondition
+                    })
+                }).catch(() => {});
+            }
+
+            const actionColHtml = isCanEdit ? `
+                    <button class="btn btn-warning btn-sm" onclick="selectPartForReorder(${p.sparePartId}, '${p.partName.replace(/'/g, "\\'")}', '${(p.brand || '').replace(/'/g, "\\'")}', ${qty})">⚡ Request Stock Reorder</button>
+            ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
+
+            tr.innerHTML = `
+                <td><strong>#${p.sparePartId}</strong></td>
+                <td><strong>${p.partName}</strong></td>
+                <td>${p.brand || 'N/A'}</td>
+                <td>${p.category || 'General'}</td>
+                <td>${supplierDisplay}</td>
+                <td>${condStr}</td>
+                <td><strong style="font-size: 15px;">${qty}</strong> units</td>
+                <td>${reorder}</td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                <td class="actions-cell">${actionColHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    const isCanEdit = ['ADMIN', 'INVENTORY_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    // Load inventory data and attach real-time input listeners
+    window.onload = function() {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Stock reorder requests and inventory updates are restricted to Admin & Inventory Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Card
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) cards[0].style.display = 'none';
+        }
+
+        loadSparePartsOverview();
+        loadSentReorderRequests();
+        loadInventoryRestockLogs();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const spInput = document.getElementById('sparePartSearchInput');
+            if (spInput) spInput.addEventListener(evt, validateSparePartInput);
+            const reqQty = document.getElementById('requestedQuantity');
+            if (reqQty) reqQty.addEventListener(evt, validateRequestedQuantity);
+        });
+    };
 </script>
 
 </body>

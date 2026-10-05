@@ -22,8 +22,38 @@ public class OrderService {
         this.saleRepository = saleRepository;
     }
 
+    // --- VALIDATION METHOD ---
+    private void validateOrderFields(Long customerId, Long sparePartId, Integer quantity, Double unitPrice, Double totalAmount) {
+        if (customerId != null && customerId <= 0) {
+            throw new IllegalArgumentException("Customer ID must be a positive integer.");
+        }
+        if (sparePartId != null && sparePartId <= 0) {
+            throw new IllegalArgumentException("Spare Part ID must be a positive integer.");
+        }
+        if (quantity != null && quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero.");
+        }
+        if (unitPrice != null && unitPrice < 0) {
+            throw new IllegalArgumentException("Unit price cannot be negative.");
+        }
+        if (totalAmount != null && totalAmount < 0) {
+            throw new IllegalArgumentException("Total amount cannot be negative.");
+        }
+    }
+
     // --- CREATE ORDER ---
     public Order createOrder(Order order) {
+        if (order.getCustomerId() == null || order.getCustomerId() <= 0) {
+            throw new IllegalArgumentException("Valid Customer ID is required.");
+        }
+        if (order.getSparePartId() == null || order.getSparePartId() <= 0) {
+            throw new IllegalArgumentException("Valid Spare Part ID is required.");
+        }
+        if (order.getQuantity() == null || order.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0.");
+        }
+        validateOrderFields(order.getCustomerId(), order.getSparePartId(), order.getQuantity(), order.getUnitPrice(), order.getTotalAmount());
+
         if (order.getOrderDate() == null) {
             order.setOrderDate(LocalDateTime.now());
         }
@@ -48,6 +78,7 @@ public class OrderService {
     // --- UPDATE ORDER ---
     public Order updateOrder(Long id, Order orderDetails) {
         Order existing = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        validateOrderFields(orderDetails.getCustomerId(), orderDetails.getSparePartId(), orderDetails.getQuantity(), orderDetails.getUnitPrice(), orderDetails.getTotalAmount());
         if (orderDetails.getCustomerId() != null) existing.setCustomerId(orderDetails.getCustomerId());
         if (orderDetails.getSparePartId() != null) existing.setSparePartId(orderDetails.getSparePartId());
         if (orderDetails.getQuantity() != null) existing.setQuantity(orderDetails.getQuantity());

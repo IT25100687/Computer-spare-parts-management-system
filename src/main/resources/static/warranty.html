@@ -217,6 +217,30 @@
             padding: 20px;
             font-style: italic;
         }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -224,13 +248,16 @@
 <!-- Top Navigation Bar -->
 <div class="navbar">
     <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
         <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
-        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/sales.html" class="nav-link">🛒 Sales & Orders</a>
         <a href="/inventory.html" class="nav-link">📦 Inventory</a>
         <a href="/customer.html" class="nav-link">👥 Customers</a>
         <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
         <a href="/warranty.html" class="nav-link active">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
     </div>
 </div>
 
@@ -240,46 +267,112 @@
         <h1>🛡️ Warranty Management & Claims</h1>
     </div>
 
-    <!-- REGISTER WARRANTY / CLAIM FORM (CREATE) -->
-    <div class="card">
-        <h2>➕ Register Warranty / File Claim</h2>
+    <!-- ADMIN NOTIFICATION ALERT BOX FOR UNREGISTERED SALES WITH WARRANTY -->
+    <div id="pendingWarrantyNotification" style="display:none; background: #fffbebf5; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px 24px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; border-bottom: 1px dashed #fcd34d; padding-bottom: 10px;">
+            <h3 style="margin:0; color: #b45309; font-size: 17px; display:flex; align-items:center; gap:8px;">
+                🔔 Admin Alert: Completed Sales Ready for Warranty Registration
+            </h3>
+            <span class="badge" style="background:#fef3c7; color:#92400e; font-size:13px; padding: 5px 12px;" id="pendingWarrantyCount">0 Pending</span>
+        </div>
+        <p style="margin:0 0 14px 0; font-size:14px; color: #78350f;">
+            The following completed sales have eligible warranties, but have not been saved to warranty records yet. Click <strong>⚡ Auto-Fill Warranty Form</strong> to populate the form below for fast registration:
+        </p>
+        <div id="pendingWarrantyList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <!-- REGISTER WARRANTY FORM (CREATE) -->
+    <div class="card" id="registerWarrantyCard">
+        <h2>➕ Register Warranty</h2>
+        <div id="alertBox" class="alert-error"></div>
         <div class="form-grid">
             <div class="form-group">
-                <label for="saleId">Sale ID</label>
-                <input type="number" id="saleId" placeholder="e.g. 1" required>
+                <label for="saleSearchInput">Sale ID / Invoice <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="saleSearchInput" list="saleSuggestions" placeholder="Type or select Sale ID..." oninput="onSaleInputChanged()">
+                <input type="hidden" id="saleId">
+                <datalist id="saleSuggestions"></datalist>
+                <span id="saleSearchInput-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="customerId">Customer ID</label>
-                <input type="number" id="customerId" placeholder="e.g. 101" required>
+                <label for="customerSearchInput">Customer (Name / ID) <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="customerSearchInput" list="customerSuggestions" placeholder="Type or select Customer..." oninput="onCustomerInputChanged()">
+                <input type="hidden" id="customerId">
+                <datalist id="customerSuggestions"></datalist>
+                <span id="customerSearchInput-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="sparePartId">Spare Part ID</label>
-                <input type="number" id="sparePartId" placeholder="e.g. 501" required>
+                <label for="sparePartSearchInput">Spare Part (Name / ID) <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="sparePartSearchInput" list="sparePartSuggestions" placeholder="Type or select Spare Part..." oninput="onSparePartInputChanged()">
+                <input type="hidden" id="sparePartId">
+                <datalist id="sparePartSuggestions"></datalist>
+                <span id="sparePartSearchInput-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="supplierSearchInput">Supplier (Company / ID)</label>
+                <input type="text" id="supplierSearchInput" list="supplierSuggestions" placeholder="Auto-filled or select Supplier..." oninput="onSupplierInputChanged()">
+                <input type="hidden" id="supplierId">
+                <datalist id="supplierSuggestions"></datalist>
+                <span id="supplierSearchInput-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="dateOfPurchase">Date of Purchase <span style="color: #dc2626;">*</span></label>
+                <input type="date" id="dateOfPurchase" onchange="validateDateOfPurchase()">
+                <span id="dateOfPurchase-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
+                <label for="warrantyPeriodYears">Warranty Period (Years)</label>
+                <input type="number" id="warrantyPeriodYears" min="1" max="10" placeholder="Auto-filled from Spare Part" style="background: #f1f5f9;">
+            </div>
+            <div class="form-group">
+                <label for="itemQuantity">Number of Items (Quantity)</label>
+                <input type="number" id="itemQuantity" min="1" max="100" value="1" placeholder="Quantity bought (Generates separate warranties)">
             </div>
             <div class="form-group">
                 <label for="warrantyStatus">Warranty Status</label>
                 <select id="warrantyStatus">
                     <option value="Active">Active</option>
-                    <option value="Expired">Expired</option>
                     <option value="Void">Void</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="claimStatus">Claim Status</label>
-                <select id="claimStatus">
-                    <option value="No Claim">No Claim</option>
-                    <option value="Claim Pending">Claim Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Resolved">Resolved</option>
-                </select>
+        </div>
+        <button class="btn btn-primary" onclick="createWarranty()">+ Save Warranty</button>
+    </div>
+
+    <!-- DEDICATED FIELD FOR VERIFYING & FILING CLAIMS -->
+    <div class="card" id="claimSectionCard">
+        <h2>🛡️ File & Verify Customer Warranty Claim</h2>
+        <p style="color: var(--text-light); font-size: 14px; margin-top: -10px; margin-bottom: 15px;">
+            Search and verify customer purchase details to check active warranty coverage and process claim requests.
+        </p>
+        <div id="claimAlertBox" class="alert-error"></div>
+        <div class="form-grid" style="align-items: end;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="claimSearchInput">Enter Purchase Info / Warranty ID <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="claimSearchInput" list="warrantyClaimSuggestions" placeholder="Type Warranty ID, Sale ID, Invoice #, or Customer Name..." oninput="onClaimSearchChanged()">
+                <input type="hidden" id="selectedWarrantyId">
+                <datalist id="warrantyClaimSuggestions"></datalist>
+                <span id="claimSearchInput-error" class="error-msg"></span>
             </div>
-            <div class="form-group" style="grid-column: span 3;">
-                <label for="claimDescription">Claim Description / Issue Details</label>
-                <input type="text" id="claimDescription" placeholder="e.g. Part defective upon installation, customer requesting replacement">
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="verifyWarrantyClaim()">🔍 Verify Warranty Status</button>
             </div>
         </div>
-        <button class="btn btn-primary" onclick="createWarranty()">+ Save Warranty / Record Claim</button>
+
+        <!-- VERIFICATION & CLAIM OUTPUT BOX -->
+        <div id="claimResultContainer" style="display: none; margin-top: 20px; padding: 20px; border-radius: 8px; border: 1px solid var(--border); background-color: #f8fafc;">
+            <h3 style="margin-top: 0; font-size: 16px;" id="resultTitle">📋 Warranty Coverage Result</h3>
+            <div id="claimDetailsDisplay" style="margin-bottom: 15px; font-size: 14px; line-height: 1.6;"></div>
+
+            <div id="claimProcessBox" style="display: none; border-top: 1px dashed var(--border); padding-top: 15px; margin-top: 15px;">
+                <h4 style="margin-top: 0; margin-bottom: 10px; color: var(--primary);">📝 File Warranty Claim</h4>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="newClaimDetails">Claim Issue / Defect Details <span style="color: #dc2626;">*</span></label>
+                    <textarea id="newClaimDetails" rows="3" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" placeholder="Enter fault description, issue reported by customer..."></textarea>
+                    <span id="newClaimDetails-error" class="error-msg"></span>
+                </div>
+                <button class="btn btn-warning" onclick="submitWarrantyClaim()">⚡ Process & Claim Warranty</button>
+            </div>
+        </div>
     </div>
 
     <!-- WARRANTIES LIST TABLE (READ, UPDATE, DELETE) -->
@@ -293,9 +386,11 @@
             <tr>
                 <th>Warranty ID</th>
                 <th>Sale ID</th>
-                <th>Customer ID</th>
-                <th>Spare Part ID</th>
-                <th>Start Date</th>
+                <th>Customer</th>
+                <th>Spare Part</th>
+                <th>Qty / Unit</th>
+                <th>Supplier</th>
+                <th>Date of Purchase</th>
                 <th>Expiry Date</th>
                 <th>Warranty Status</th>
                 <th>Claim Status</th>
@@ -311,29 +406,486 @@
 </div>
 
 <script>
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
+
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
+
     const API_WARRANTIES = '/api/warranties';
+    const API_SALES = '/api/sales';
+    const API_ORDERS = '/api/orders';
+    const API_CUSTOMERS = '/api/customers';
+    const API_PARTS = '/api/parts';
+    const API_SUPPLIERS = '/api/suppliers';
 
-    // --- 1. CREATE WARRANTY ---
-    function createWarranty() {
-        const saleId = document.getElementById('saleId').value;
-        const customerId = document.getElementById('customerId').value;
-        const sparePartId = document.getElementById('sparePartId').value;
-        const warrantyStatus = document.getElementById('warrantyStatus').value;
-        const claimStatus = document.getElementById('claimStatus').value;
-        const claimDescription = document.getElementById('claimDescription').value;
+    let allWarrantiesList = [];
+    let allSalesList = [];
+    let allOrdersList = [];
+    let allCustomersList = [];
+    let allPartsList = [];
+    let allSuppliersList = [];
 
-        if (!saleId || !customerId || !sparePartId) {
-            alert("Please fill in Sale ID, Customer ID, and Spare Part ID!");
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function showClaimAlert(msg) {
+        const box = document.getElementById('claimAlertBox');
+        if (!box) return;
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (!input || !errSpan) return true;
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    // --- CATALOG LOADER ---
+    function loadCatalogData() {
+        return Promise.all([
+            fetch(API_WARRANTIES).then(r => r.json()).catch(() => []),
+            fetch(API_SALES).then(r => r.json()).catch(() => []),
+            fetch(API_ORDERS).then(r => r.json()).catch(() => []),
+            fetch(API_CUSTOMERS).then(r => r.json()).catch(() => []),
+            fetch(API_PARTS).then(r => r.json()).catch(() => []),
+            fetch(API_SUPPLIERS).then(r => r.json()).catch(() => [])
+        ]).then(([warranties, sales, orders, customers, parts, suppliers]) => {
+            allWarrantiesList = warranties;
+            allSalesList = sales;
+            allOrdersList = orders;
+            allCustomersList = customers;
+            allPartsList = parts;
+            allSuppliersList = suppliers;
+
+            populateSaleSuggestions(sales);
+            populateCustomerSuggestions(customers);
+            populateSparePartSuggestions(parts);
+            populateSupplierSuggestions(suppliers);
+
+            loadWarranties();
+            checkPendingWarranties();
+        });
+    }
+
+    function populateSaleSuggestions(sales) {
+        const datalist = document.getElementById('saleSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        sales.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = `Sale #${s.saleId} (${s.invoiceNumber || 'Invoice'})`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function populateCustomerSuggestions(customers) {
+        const datalist = document.getElementById('customerSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        customers.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = `#${c.customerId} - ${c.name} (${c.email || c.phone || 'No Contact'})`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function populateSparePartSuggestions(parts) {
+        const datalist = document.getElementById('sparePartSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        parts.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = `#${p.sparePartId} - ${p.partName} (${p.brand || 'N/A'})`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function populateSupplierSuggestions(suppliers) {
+        const datalist = document.getElementById('supplierSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        suppliers.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = `#${s.supplierId} - ${s.company || s.supplierName}`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    function populateWarrantyClaimSuggestions(warranties) {
+        const datalist = document.getElementById('warrantyClaimSuggestions');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+        warranties.forEach(w => {
+            const cust = allCustomersList.find(c => c.customerId === w.customerId);
+            const part = allPartsList.find(p => p.sparePartId === w.sparePartId);
+            const opt = document.createElement('option');
+            opt.value = `Warranty #${w.warrantyId} - Sale #${w.saleId} - ${cust ? cust.name : 'Cust #' + w.customerId} - ${part ? part.partName : 'Part #' + w.sparePartId}`;
+            datalist.appendChild(opt);
+        });
+    }
+
+    // --- PENDING WARRANTY NOTIFICATION & AUTO-FILL ---
+    function checkPendingWarranties() {
+        const notifBox = document.getElementById('pendingWarrantyNotification');
+        const countSpan = document.getElementById('pendingWarrantyCount');
+        const listDiv = document.getElementById('pendingWarrantyList');
+        if (!notifBox || !listDiv) return;
+
+        const unregisteredSales = [];
+
+        allSalesList.forEach(sale => {
+            const hasWarranty = allWarrantiesList.some(w => w.saleId === sale.saleId);
+            if (!hasWarranty) {
+                const order = allOrdersList.find(o => o.orderId === sale.orderId) || { customerId: sale.customerId, sparePartId: null, quantity: 1 };
+                const part = allPartsList.find(p => p.sparePartId === order.sparePartId);
+                const cust = allCustomersList.find(c => c.customerId === (sale.customerId || order.customerId));
+                const supp = part ? allSuppliersList.find(s => s.supplierId === part.supplierId) : null;
+
+                unregisteredSales.push({
+                    sale,
+                    order,
+                    part,
+                    cust,
+                    supp
+                });
+            }
+        });
+
+        if (unregisteredSales.length === 0) {
+            notifBox.style.display = 'none';
             return;
         }
 
+        notifBox.style.display = 'block';
+        countSpan.innerText = `${unregisteredSales.length} Pending Sale${unregisteredSales.length > 1 ? 's' : ''}`;
+
+        listDiv.innerHTML = '';
+        unregisteredSales.forEach(item => {
+            const sale = item.sale;
+            const custName = item.cust ? item.cust.name : `Customer #${sale.customerId || 'N/A'}`;
+            const partName = item.part ? item.part.partName : `Part #${item.order.sparePartId || 'N/A'}`;
+            const qty = item.order.quantity || 1;
+            const dateStr = sale.saleDate ? new Date(sale.saleDate).toLocaleDateString() : 'N/A';
+
+            const card = document.createElement('div');
+            card.style.cssText = "background: white; border: 1px solid #fcd34d; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;";
+            card.innerHTML = `
+                <div>
+                    <strong style="color: #92400e; font-size: 14px;">Sale #${sale.saleId} (${sale.invoiceNumber || 'Invoice'})</strong>
+                    <span style="color: #64748b; font-size: 13px; margin-left: 10px;">👤 ${custName} | 🛠️ ${partName} | 📦 Qty: ${qty} | 📅 ${dateStr}</span>
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="autoFillWarrantyForSale(${sale.saleId})">⚡ Auto-Fill Warranty Form ${qty > 1 ? `(${qty} Warranties)` : ''}</button>
+            `;
+            listDiv.appendChild(card);
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSaleId = urlParams.get('saleId');
+        if (urlSaleId) {
+            autoFillWarrantyForSale(parseInt(urlSaleId));
+        } else {
+            const currentSaleIdVal = document.getElementById('saleId').value;
+            if (!currentSaleIdVal && unregisteredSales.length > 0) {
+                autoFillWarrantyForSale(unregisteredSales[0].sale.saleId);
+            }
+        }
+    }
+
+    function autoFillWarrantyForSale(targetSaleId) {
+        const sale = allSalesList.find(s => s.saleId === targetSaleId);
+        if (!sale) return;
+
+        const order = allOrdersList.find(o => o.orderId === sale.orderId) || { customerId: sale.customerId, sparePartId: null, quantity: 1 };
+        const custId = sale.customerId || order.customerId;
+        const partId = order.sparePartId;
+        const qty = order.quantity || 1;
+
+        const cust = allCustomersList.find(c => c.customerId === custId);
+        const part = allPartsList.find(p => p.sparePartId === partId);
+        const supp = part ? allSuppliersList.find(s => s.supplierId === part.supplierId) : null;
+
+        document.getElementById('saleId').value = sale.saleId;
+        document.getElementById('saleSearchInput').value = `Sale #${sale.saleId} (${sale.invoiceNumber || 'Invoice'})`;
+        setFieldError('saleSearchInput', null);
+
+        if (custId) {
+            document.getElementById('customerId').value = custId;
+            document.getElementById('customerSearchInput').value = cust ? `#${cust.customerId} - ${cust.name}` : `#${custId}`;
+            setFieldError('customerSearchInput', null);
+        }
+
+        if (partId) {
+            document.getElementById('sparePartId').value = partId;
+            document.getElementById('sparePartSearchInput').value = part ? `#${part.sparePartId} - ${part.partName}` : `#${partId}`;
+            setFieldError('sparePartSearchInput', null);
+
+            let years = 1;
+            if (part && part.warrantyEligibility) {
+                const match = part.warrantyEligibility.match(/(\d+)\s*(month|year)/i);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    const unit = match[2].toLowerCase();
+                    years = unit.startsWith('month') ? Math.max(1, Math.round(num / 12)) : num;
+                }
+            }
+            document.getElementById('warrantyPeriodYears').value = years;
+        }
+
+        document.getElementById('itemQuantity').value = qty;
+
+        if (supp) {
+            document.getElementById('supplierId').value = supp.supplierId;
+            document.getElementById('supplierSearchInput').value = `#${supp.supplierId} - ${supp.company || supp.supplierName}`;
+        } else if (part && part.supplierId) {
+            const supp2 = allSuppliersList.find(s => s.supplierId === part.supplierId);
+            if (supp2) {
+                document.getElementById('supplierId').value = supp2.supplierId;
+                document.getElementById('supplierSearchInput').value = `#${supp2.supplierId} - ${supp2.company || supp2.supplierName}`;
+            }
+        }
+
+        if (sale.saleDate) {
+            const d = new Date(sale.saleDate);
+            document.getElementById('dateOfPurchase').value = d.toISOString().split('T')[0];
+            setFieldError('dateOfPurchase', null);
+        } else {
+            document.getElementById('dateOfPurchase').value = new Date().toISOString().split('T')[0];
+            setFieldError('dateOfPurchase', null);
+        }
+
+        document.getElementById('warrantyStatus').value = 'Active';
+
+        document.getElementById('registerWarrantyCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- LOOKUP MATCHERS & CHANGE LISTENERS ---
+    function findMatchingSale(val) {
+        if (!val) return null;
+        const v = val.trim().toLowerCase();
+        const numMatch = v.match(/^#?(\d+)/) || v.match(/sale\s*#?(\d+)/);
+        if (numMatch) {
+            const id = parseInt(numMatch[1]);
+            const s = allSalesList.find(x => x.saleId === id);
+            if (s) return s;
+        }
+        return allSalesList.find(x => (x.invoiceNumber && x.invoiceNumber.toLowerCase() === v));
+    }
+
+    function findMatchingCustomer(val) {
+        if (!val) return null;
+        const v = val.trim().toLowerCase();
+        const numMatch = v.match(/^#?(\d+)/);
+        if (numMatch) {
+            const id = parseInt(numMatch[1]);
+            const c = allCustomersList.find(x => x.customerId === id);
+            if (c) return c;
+        }
+        return allCustomersList.find(x => (x.name && x.name.toLowerCase() === v) || (x.email && x.email.toLowerCase() === v));
+    }
+
+    function findMatchingPart(val) {
+        if (!val) return null;
+        const v = val.trim().toLowerCase();
+        const numMatch = v.match(/^#?(\d+)/);
+        if (numMatch) {
+            const id = parseInt(numMatch[1]);
+            const p = allPartsList.find(x => x.sparePartId === id);
+            if (p) return p;
+        }
+        return allPartsList.find(x => (x.partName && x.partName.toLowerCase() === v));
+    }
+
+    function findMatchingSupplier(val) {
+        if (!val) return null;
+        const v = val.trim().toLowerCase();
+        const numMatch = v.match(/^#?(\d+)/);
+        if (numMatch) {
+            const id = parseInt(numMatch[1]);
+            const s = allSuppliersList.find(x => x.supplierId === id);
+            if (s) return s;
+        }
+        return allSuppliersList.find(x => (x.company && x.company.toLowerCase() === v) || (x.supplierName && x.supplierName.toLowerCase() === v));
+    }
+
+    function onSaleInputChanged() {
+        const inputVal = document.getElementById('saleSearchInput').value;
+        const hiddenId = document.getElementById('saleId');
+        const sale = findMatchingSale(inputVal);
+
+        if (sale) {
+            hiddenId.value = sale.saleId;
+            setFieldError('saleSearchInput', null);
+
+            if (sale.customerId) {
+                const cust = allCustomersList.find(c => c.customerId === sale.customerId);
+                document.getElementById('customerId').value = sale.customerId;
+                document.getElementById('customerSearchInput').value = cust ? `#${cust.customerId} - ${cust.name}` : `#${sale.customerId}`;
+                setFieldError('customerSearchInput', null);
+            }
+
+            if (sale.saleDate) {
+                const d = new Date(sale.saleDate);
+                document.getElementById('dateOfPurchase').value = d.toISOString().split('T')[0];
+                setFieldError('dateOfPurchase', null);
+            }
+        } else {
+            hiddenId.value = '';
+            validateSaleInput();
+        }
+    }
+
+    function onCustomerInputChanged() {
+        const inputVal = document.getElementById('customerSearchInput').value;
+        const hiddenId = document.getElementById('customerId');
+        const cust = findMatchingCustomer(inputVal);
+        if (cust) {
+            hiddenId.value = cust.customerId;
+            setFieldError('customerSearchInput', null);
+        } else {
+            hiddenId.value = '';
+            validateCustomerInput();
+        }
+    }
+
+    function onSparePartInputChanged() {
+        const inputVal = document.getElementById('sparePartSearchInput').value;
+        const hiddenId = document.getElementById('sparePartId');
+        const part = findMatchingPart(inputVal);
+
+        if (part) {
+            hiddenId.value = part.sparePartId;
+            setFieldError('sparePartSearchInput', null);
+
+            if (part.supplierId) {
+                const supp = allSuppliersList.find(s => s.supplierId === part.supplierId);
+                document.getElementById('supplierId').value = part.supplierId;
+                document.getElementById('supplierSearchInput').value = supp ? `#${supp.supplierId} - ${supp.company || supp.supplierName}` : `#${part.supplierId}`;
+            }
+
+            let years = 1;
+            if (part.warrantyEligibility) {
+                const match = part.warrantyEligibility.match(/(\d+)\s*(month|year)/i);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    const unit = match[2].toLowerCase();
+                    years = unit.startsWith('month') ? Math.max(1, Math.round(num / 12)) : num;
+                }
+            }
+            document.getElementById('warrantyPeriodYears').value = years;
+        } else {
+            hiddenId.value = '';
+            validateSparePartInput();
+        }
+    }
+
+    function onSupplierInputChanged() {
+        const inputVal = document.getElementById('supplierSearchInput').value;
+        const hiddenId = document.getElementById('supplierId');
+        const supp = findMatchingSupplier(inputVal);
+        if (supp) {
+            hiddenId.value = supp.supplierId;
+            setFieldError('supplierSearchInput', null);
+        } else {
+            hiddenId.value = '';
+        }
+    }
+
+    // --- FORM VALIDATION ---
+    function validateSaleInput() {
+        const inputVal = (document.getElementById('saleSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('saleId').value;
+        if (!inputVal) return setFieldError('saleSearchInput', 'Sale selection/ID is required.');
+        if (!hiddenIdVal) return setFieldError('saleSearchInput', `No matching Sale found for "${inputVal}". Select a valid Sale.`);
+        return setFieldError('saleSearchInput', null);
+    }
+
+    function validateCustomerInput() {
+        const inputVal = (document.getElementById('customerSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('customerId').value;
+        if (!inputVal) return setFieldError('customerSearchInput', 'Customer selection/ID is required.');
+        if (!hiddenIdVal) return setFieldError('customerSearchInput', `No matching Customer found for "${inputVal}". Select a valid Customer.`);
+        return setFieldError('customerSearchInput', null);
+    }
+
+    function validateSparePartInput() {
+        const inputVal = (document.getElementById('sparePartSearchInput').value || '').trim();
+        const hiddenIdVal = document.getElementById('sparePartId').value;
+        if (!inputVal) return setFieldError('sparePartSearchInput', 'Spare Part selection/ID is required.');
+        if (!hiddenIdVal) return setFieldError('sparePartSearchInput', `No matching Spare Part found for "${inputVal}". Select a valid Spare Part.`);
+        return setFieldError('sparePartSearchInput', null);
+    }
+
+    function validateDateOfPurchase() {
+        const val = document.getElementById('dateOfPurchase').value;
+        if (!val) return setFieldError('dateOfPurchase', 'Date of Purchase is required.');
+        return setFieldError('dateOfPurchase', null);
+    }
+
+    // --- 1. CREATE WARRANTY ---
+    function createWarranty() {
+        showAlert(null);
+        const vSale = validateSaleInput();
+        const vCust = validateCustomerInput();
+        const vPart = validateSparePartInput();
+        const vDate = validateDateOfPurchase();
+
+        if (!vSale || !vCust || !vPart || !vDate) {
+            showAlert("Please correct the highlighted errors before saving warranty!");
+            return;
+        }
+
+        const saleId = parseInt(document.getElementById('saleId').value);
+        const customerId = parseInt(document.getElementById('customerId').value);
+        const sparePartId = parseInt(document.getElementById('sparePartId').value);
+        const supplierIdVal = document.getElementById('supplierId').value;
+        const supplierId = supplierIdVal ? parseInt(supplierIdVal) : null;
+        const dateOfPurchase = document.getElementById('dateOfPurchase').value;
+        const warrantyPeriodYears = parseInt(document.getElementById('warrantyPeriodYears').value) || 1;
+        const itemQuantity = parseInt(document.getElementById('itemQuantity').value) || 1;
+        const warrantyStatus = document.getElementById('warrantyStatus').value;
+
+        const startDateIso = new Date(dateOfPurchase + 'T00:00:00').toISOString();
+
         const payload = {
-            saleId: parseInt(saleId),
-            customerId: parseInt(customerId),
-            sparePartId: parseInt(sparePartId),
+            saleId: saleId,
+            customerId: customerId,
+            sparePartId: sparePartId,
+            supplierId: supplierId,
+            startDate: startDateIso,
+            warrantyPeriodYears: warrantyPeriodYears,
             warrantyStatus: warrantyStatus,
-            claimStatus: claimStatus,
-            claimDescription: claimDescription
+            claimStatus: "No Claim",
+            claimDescription: "",
+            itemQuantity: itemQuantity
         };
 
         fetch(API_WARRANTIES, {
@@ -341,93 +893,288 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to save warranty record");
+            return data;
+        })
         .then(data => {
-            alert(`✅ Warranty #${data.warrantyId} registered successfully!`);
-            clearForm();
+            const count = Array.isArray(data) ? data.length : 1;
+            alert(`✅ Registered ${count} separate Warranty record(s) successfully for Sale #${saleId}! Coverage: ${warrantyPeriodYears} Year(s).`);
+            clearRegisterForm();
             loadWarranties();
         })
-        .catch(err => alert("Error saving warranty: " + err));
+        .catch(err => showAlert(err.message));
     }
 
-    function clearForm() {
+    function clearRegisterForm() {
+        document.getElementById('saleSearchInput').value = '';
         document.getElementById('saleId').value = '';
+        document.getElementById('customerSearchInput').value = '';
         document.getElementById('customerId').value = '';
+        document.getElementById('sparePartSearchInput').value = '';
         document.getElementById('sparePartId').value = '';
-        document.getElementById('claimDescription').value = '';
+        document.getElementById('supplierSearchInput').value = '';
+        document.getElementById('supplierId').value = '';
+        document.getElementById('dateOfPurchase').value = '';
+        document.getElementById('warrantyPeriodYears').value = '';
+        document.getElementById('itemQuantity').value = '1';
+        document.getElementById('warrantyStatus').value = 'Active';
+        setFieldError('saleSearchInput', null);
+        setFieldError('customerSearchInput', null);
+        setFieldError('sparePartSearchInput', null);
+        setFieldError('dateOfPurchase', null);
+        showAlert(null);
     }
 
-    // --- 2. READ WARRANTIES ---
+    // --- 2. READ & RENDER WARRANTIES ---
     function loadWarranties() {
         fetch(API_WARRANTIES)
         .then(res => res.json())
         .then(warranties => {
+            allWarrantiesList = warranties;
+            populateWarrantyClaimSuggestions(warranties);
+
             const tbody = document.querySelector('#warrantiesTable tbody');
             tbody.innerHTML = '';
 
             if (warranties.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-msg">No warranty records found. Register one above!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" class="empty-msg">No warranty records found. Register one above!</td></tr>';
                 return;
             }
 
             warranties.forEach(war => {
                 const tr = document.createElement('tr');
-                const statusBadgeClass = war.warrantyStatus === 'Expired' ? 'badge-expired' : 'badge-active';
-                const claimBadgeClass = war.claimStatus === 'Claim Pending' ? 'badge-pending' :
-                                        war.claimStatus === 'Resolved' ? 'badge-resolved' : 'badge-active';
-                const startDateStr = war.startDate ? new Date(war.startDate).toLocaleDateString() : 'N/A';
-                const expiryDateStr = war.expiryDate ? new Date(war.expiryDate).toLocaleDateString() : 'N/A';
+
+                const cust = allCustomersList.find(c => c.customerId === war.customerId);
+                const custDisplay = cust ? `${cust.name} (#${cust.customerId})` : `Cust #${war.customerId}`;
+
+                const part = allPartsList.find(p => p.sparePartId === war.sparePartId);
+                const partDisplay = part ? `${part.partName} (#${part.sparePartId})` : `Part #${war.sparePartId}`;
+
+                const supp = allSuppliersList.find(s => s.supplierId === war.supplierId);
+                const suppDisplay = supp ? `${supp.company || supp.supplierName} (#${supp.supplierId})` : (war.supplierId ? `Supplier #${war.supplierId}` : 'N/A');
+
+                const purchaseDateStr = war.startDate ? new Date(war.startDate).toLocaleDateString() : 'N/A';
+                const expiryDate = war.expiryDate ? new Date(war.expiryDate) : null;
+                const expiryDateStr = expiryDate ? expiryDate.toLocaleDateString() : 'N/A';
+
+                const isExpired = expiryDate && new Date() > expiryDate;
+                const isVoid = war.warrantyStatus === 'Void';
+
+                let statusBadgeClass = 'badge-active';
+                let statusText = '✅ Active';
+                if (isVoid) {
+                    statusBadgeClass = 'badge-expired';
+                    statusText = '🚫 Void';
+                } else if (isExpired) {
+                    statusBadgeClass = 'badge-expired';
+                    statusText = '❌ Expired';
+                }
+
+                const hasClaim = war.claimStatus === 'Claimed' || war.claimStatus === 'Resolved';
+                const claimBadgeClass = hasClaim ? (war.claimStatus === 'Resolved' ? 'badge-resolved' : 'badge-pending') : 'badge-active';
+                const claimText = war.claimStatus || 'No Claim';
+
+                const unitStr = (war.itemQuantity && war.itemQuantity > 1) ? `Unit #${war.unitNumber || 1} of ${war.itemQuantity}` : '1 Unit';
+
+                const warrantyActionsHtml = isCanEdit ? `
+                        <button class="btn btn-warning btn-sm" onclick="editWarrantyStatus(${war.warrantyId}, '${war.warrantyStatus || 'Active'}')">✏️ Edit Status</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteWarranty(${war.warrantyId})">🗑️ Delete</button>
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
 
                 tr.innerHTML = `
                     <td><strong>#${war.warrantyId}</strong></td>
-                    <td>Sale-#${war.saleId}</td>
-                    <td>Cust-#${war.customerId}</td>
-                    <td>Part-#${war.sparePartId}</td>
-                    <td>${startDateStr}</td>
+                    <td>Sale #${war.saleId}</td>
+                    <td><strong>${custDisplay}</strong></td>
+                    <td><strong>${partDisplay}</strong></td>
+                    <td><span class="badge" style="background:#e0f2fe; color:#0369a1;">${unitStr}</span></td>
+                    <td>${suppDisplay}</td>
+                    <td>${purchaseDateStr}</td>
                     <td>${expiryDateStr}</td>
-                    <td><span class="badge ${statusBadgeClass}">${war.warrantyStatus || 'Active'}</span></td>
-                    <td><span class="badge ${claimBadgeClass}">${war.claimStatus || 'No Claim'}</span></td>
-                    <td>${war.claimDescription || 'None'}</td>
-                    <td class="actions-cell">
-                        <button class="btn btn-warning btn-sm" onclick="editWarranty(${war.warrantyId}, '${war.warrantyStatus || 'Active'}', '${war.claimStatus || 'No Claim'}', '${war.claimDescription || ''}')">✏️ Edit Claim</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteWarranty(${war.warrantyId})">🗑️ Delete</button>
-                    </td>
+                    <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+                    <td><span class="badge ${claimBadgeClass}">${claimText}</span></td>
+                    <td>${war.claimDescription || '<em style="color:#94a3b8;">None</em>'}</td>
+                    <td class="actions-cell">${warrantyActionsHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
         });
     }
 
-    // --- 3. UPDATE WARRANTY / CLAIM ---
-    function editWarranty(id, currentWarrantyStatus, currentClaimStatus, currentDesc) {
-        const newWarrantyStatus = prompt(`Update Warranty Status for #${id} (Active, Expired, Void):`, currentWarrantyStatus);
-        if (newWarrantyStatus === null) return;
+    // --- 3. CLAIMS: VERIFY & SUBMIT WARRANTY CLAIM ---
+    function onClaimSearchChanged() {
+        const val = document.getElementById('claimSearchInput').value;
+        const hiddenId = document.getElementById('selectedWarrantyId');
 
-        const newClaimStatus = prompt(`Update Claim Status for #${id} (No Claim, Claim Pending, Approved, Rejected, Resolved):`, currentClaimStatus);
-        if (newClaimStatus === null) return;
+        if (!val || !val.trim()) {
+            hiddenId.value = '';
+            return;
+        }
 
-        const newDesc = prompt(`Update Claim Description for #${id}:`, currentDesc);
-        if (newDesc === null) return;
+        const v = val.trim().toLowerCase();
+        const numMatch = v.match(/warranty\s*#?(\d+)/) || v.match(/^#?(\d+)/);
+        if (numMatch) {
+            const id = parseInt(numMatch[1]);
+            const war = allWarrantiesList.find(w => w.warrantyId === id || w.saleId === id);
+            if (war) {
+                hiddenId.value = war.warrantyId;
+                setFieldError('claimSearchInput', null);
+                return;
+            }
+        }
+
+        const found = allWarrantiesList.find(w => {
+            const cust = allCustomersList.find(c => c.customerId === w.customerId);
+            const part = allPartsList.find(p => p.sparePartId === w.sparePartId);
+            return (cust && cust.name.toLowerCase().includes(v)) || (part && part.partName.toLowerCase().includes(v));
+        });
+
+        if (found) {
+            hiddenId.value = found.warrantyId;
+            setFieldError('claimSearchInput', null);
+        } else {
+            hiddenId.value = '';
+        }
+    }
+
+    function verifyWarrantyClaim() {
+        showClaimAlert(null);
+        const searchVal = document.getElementById('claimSearchInput').value;
+        const hiddenIdVal = document.getElementById('selectedWarrantyId').value;
+
+        if (!searchVal) {
+            showClaimAlert('Please enter Warranty ID, Sale ID, or Customer Name to verify claim status.');
+            return;
+        }
+
+        let warranty = null;
+        if (hiddenIdVal) {
+            warranty = allWarrantiesList.find(w => w.warrantyId === parseInt(hiddenIdVal));
+        }
+        if (!warranty) {
+            onClaimSearchChanged();
+            const reId = document.getElementById('selectedWarrantyId').value;
+            if (reId) warranty = allWarrantiesList.find(w => w.warrantyId === parseInt(reId));
+        }
+
+        if (!warranty) {
+            showClaimAlert(`No Warranty record found matching "${searchVal}". Please check invoice or sale details.`);
+            document.getElementById('claimResultContainer').style.display = 'none';
+            return;
+        }
+
+        const cust = allCustomersList.find(c => c.customerId === warranty.customerId);
+        const part = allPartsList.find(p => p.sparePartId === warranty.sparePartId);
+        const supp = allSuppliersList.find(s => s.supplierId === warranty.supplierId);
+
+        const purchaseDateStr = warranty.startDate ? new Date(warranty.startDate).toLocaleDateString() : 'N/A';
+        const expiryDate = warranty.expiryDate ? new Date(warranty.expiryDate) : null;
+        const expiryDateStr = expiryDate ? expiryDate.toLocaleDateString() : 'N/A';
+
+        const isExpired = expiryDate && new Date() > expiryDate;
+        const isVoid = warranty.warrantyStatus === 'Void';
+        const isClaimed = warranty.claimStatus === 'Claimed' || warranty.claimStatus === 'Resolved';
+
+        let coverageStatusHtml = '';
+        if (isVoid) {
+            coverageStatusHtml = '<span class="badge badge-expired" style="font-size:14px; padding:6px 12px;">🚫 VOID WARRANTY (Invalidated)</span>';
+        } else if (isExpired) {
+            coverageStatusHtml = `<span class="badge badge-expired" style="font-size:14px; padding:6px 12px;">❌ EXPIRED WARRANTY (Expired on ${expiryDateStr})</span>`;
+        } else {
+            coverageStatusHtml = `<span class="badge badge-active" style="font-size:14px; padding:6px 12px;">✅ ACTIVE WARRANTY (Valid until ${expiryDateStr})</span>`;
+        }
+
+        let claimStatusHtml = '';
+        if (isClaimed) {
+            claimStatusHtml = `<span class="badge badge-pending" style="font-size:14px; padding:6px 12px;">⚠️ ALREADY CLAIMED (${warranty.claimStatus})</span>`;
+        } else {
+            claimStatusHtml = '<span class="badge badge-active" style="font-size:14px; padding:6px 12px;">ℹ️ NO CLAIM FILED (Warranty is Claimable)</span>';
+        }
+
+        const container = document.getElementById('claimResultContainer');
+        const detailsDiv = document.getElementById('claimDetailsDisplay');
+        const processBox = document.getElementById('claimProcessBox');
+
+        const unitInfo = (warranty.itemQuantity && warranty.itemQuantity > 1) 
+            ? ` (Unit #${warranty.unitNumber || 1} of ${warranty.itemQuantity})`
+            : '';
+        const totalItemsDisplay = (warranty.itemQuantity && warranty.itemQuantity > 1)
+            ? `${warranty.itemQuantity} Units Total (Item Unit #${warranty.unitNumber || 1} of ${warranty.itemQuantity})`
+            : `1 Unit`;
+
+        detailsDiv.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <div><strong>Warranty Record:</strong> Warranty #${warranty.warrantyId} (Sale #${warranty.saleId})${unitInfo}</div>
+                <div><strong>Customer:</strong> ${cust ? cust.name : 'Cust #' + warranty.customerId}</div>
+                <div><strong>Spare Part:</strong> ${part ? part.partName : 'Part #' + warranty.sparePartId} (${part ? part.brand || 'N/A' : 'N/A'})</div>
+                <div><strong>Quantity Purchased:</strong> <strong>${totalItemsDisplay}</strong></div>
+                <div><strong>Supplier:</strong> ${supp ? supp.company || supp.supplierName : (warranty.supplierId ? 'Supplier #' + warranty.supplierId : 'N/A')}</div>
+                <div><strong>Date of Purchase:</strong> ${purchaseDateStr}</div>
+                <div><strong>Warranty Expiry Date:</strong> ${expiryDateStr} (${warranty.warrantyPeriodYears || 1} Year Coverage)</div>
+                <div><strong>Warranty Coverage:</strong> ${coverageStatusHtml}</div>
+                <div style="grid-column: span 2;"><strong>Claim History:</strong> ${claimStatusHtml}</div>
+            </div>
+            ${isClaimed && warranty.claimDescription ? `<div style="margin-top:10px; background:#fff; padding:10px; border-radius:6px; border:1px solid var(--border);"><strong>Existing Claim Description:</strong> "${warranty.claimDescription}"</div>` : ''}
+        `;
+
+        container.style.display = 'block';
+
+        if (!isVoid && !isExpired && !isClaimed) {
+            processBox.style.display = 'block';
+            document.getElementById('newClaimDetails').value = '';
+            setFieldError('newClaimDetails', null);
+        } else {
+            processBox.style.display = 'none';
+        }
+    }
+
+    function submitWarrantyClaim() {
+        showClaimAlert(null);
+        const warrantyId = document.getElementById('selectedWarrantyId').value;
+        const details = document.getElementById('newClaimDetails').value.trim();
+
+        if (!details) {
+            setFieldError('newClaimDetails', 'Claim Description / Issue Details are required to process warranty claim.');
+            return;
+        }
 
         const payload = {
-            warrantyStatus: newWarrantyStatus,
-            claimStatus: newClaimStatus,
-            claimDescription: newDesc
+            claimStatus: 'Claimed',
+            claimDescription: details
         };
 
-        fetch(`${API_WARRANTIES}/${id}`, {
+        fetch(`${API_WARRANTIES}/${warrantyId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(updated => {
-            alert(`✅ Warranty #${id} updated successfully!`);
+            alert(`🎉 Warranty Claim successfully recorded for Warranty #${warrantyId}!\nStatus updated to "Claimed".`);
+            document.getElementById('claimProcessBox').style.display = 'none';
+            verifyWarrantyClaim();
+            loadWarranties();
+        })
+        .catch(err => showClaimAlert(err.message));
+    }
+
+    function editWarrantyStatus(id, currentStatus) {
+        const newStatus = prompt(`Update Warranty Status for #${id} (Active, Void):`, currentStatus);
+        if (!newStatus) return;
+
+        fetch(`${API_WARRANTIES}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ warrantyStatus: newStatus })
+        })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Warranty #${id} status updated to ${updated.warrantyStatus}`);
             loadWarranties();
         });
     }
 
-    // --- 4. DELETE WARRANTY ---
     function deleteWarranty(id) {
         if (!confirm(`Are you sure you want to delete Warranty record #${id}?`)) return;
 
@@ -439,8 +1186,39 @@
         });
     }
 
-    // Load warranties table on page start
-    window.onload = loadWarranties;
+    const isCanEdit = ['ADMIN', 'SALES_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    window.onload = function() {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Warranty registration and claim updates are restricted to Admin & Sales Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Card
+            const card = document.getElementById('registerWarrantyCard');
+            if (card) card.style.display = 'none';
+        }
+
+        loadCatalogData();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const sInput = document.getElementById('saleSearchInput');
+            if (sInput) sInput.addEventListener(evt, validateSaleInput);
+            const cInput = document.getElementById('customerSearchInput');
+            if (cInput) cInput.addEventListener(evt, validateCustomerInput);
+            const spInput = document.getElementById('sparePartSearchInput');
+            if (spInput) spInput.addEventListener(evt, validateSparePartInput);
+            const dInput = document.getElementById('dateOfPurchase');
+            if (dInput) dInput.addEventListener(evt, validateDateOfPurchase);
+        });
+    };
 </script>
 
 </body>

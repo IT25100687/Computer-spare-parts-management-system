@@ -26,8 +26,8 @@ public class WarrantyController {
     }
 
     @PostMapping
-    public Warranty createWarranty(@RequestBody Warranty warranty) {
-        return warrantyService.createWarranty(warranty);
+    public List<Warranty> createWarranty(@RequestBody Warranty warranty) {
+        return warrantyService.createWarranties(warranty);
     }
 
     @PutMapping("/{id}")

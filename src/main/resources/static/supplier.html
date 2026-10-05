@@ -215,6 +215,30 @@
             padding: 20px;
             font-style: italic;
         }
+        .input-error, input.input-error, input.input-error:focus, select.input-error:focus {
+            border: 2px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: none;
+        }
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -222,13 +246,16 @@
 <!-- Top Navigation Bar -->
 <div class="navbar">
     <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" style="align-items: center;">
+        <a href="/store.html" class="nav-link" style="color: #60a5fa; border: 1px dashed #60a5fa;">🛍️ Online Storefront</a>
         <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
-        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/sales.html" class="nav-link">🛒 Sales & Orders</a>
         <a href="/inventory.html" class="nav-link">📦 Inventory</a>
         <a href="/customer.html" class="nav-link">👥 Customers</a>
         <a href="/supplier.html" class="nav-link active">🏭 Suppliers</a>
         <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+        <span style="color: #94a3b8; font-size: 13px; margin-left: 10px;" id="adminUserGreeting"></span>
+        <button class="btn btn-danger btn-sm" onclick="logoutAdmin()" style="margin-left: 5px;">🚪 Logout</button>
     </div>
 </div>
 
@@ -241,35 +268,29 @@
     <!-- REGISTER SUPPLIER FORM (CREATE) -->
     <div class="card">
         <h2>➕ Register New Supplier</h2>
+        <div id="alertBox" class="alert-error"></div>
         <div class="form-grid">
             <div class="form-group">
+                <label for="company">Company Name <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="company" placeholder="e.g. Bosch Auto Parts Inc." oninput="validateCompany()" required>
+                <span id="company-error" class="error-msg"></span>
+            </div>
+            <div class="form-group">
                 <label for="supplierName">Contact Person Name</label>
-                <input type="text" id="supplierName" placeholder="e.g. Robert Smith" required>
+                <input type="text" id="supplierName" placeholder="e.g. Robert Smith" oninput="validateSupplierName()">
+                <span id="supplierName-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="company">Company Name</label>
-                <input type="text" id="company" placeholder="e.g. Bosch Auto Parts Inc." required>
+                <label for="phone">Phone Number <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="phone" placeholder="e.g. +1-800-555-0199" oninput="validatePhone()" required>
+                <span id="phone-error" class="error-msg"></span>
             </div>
             <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="text" id="phone" placeholder="e.g. +1-800-555-0199" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="e.g. sales@boschautoparts.com" required>
-            </div>
-            <div class="form-group">
-                <label for="status">Supplier Status</label>
-                <select id="status">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                </select>
+                <label for="email">Email Address <span style="color: #dc2626;">*</span></label>
+                <input type="email" id="email" placeholder="e.g. sales@boschautoparts.com" oninput="validateEmail()" required>
+                <span id="email-error" class="error-msg"></span>
             </div>
             <div class="form-group" style="grid-column: span 2;">
-                <label for="partsSupplied">Parts Supplied (Description)</label>
-                <input type="text" id="partsSupplied" placeholder="e.g. Brake pads, Oil filters, Spark plugs">
-            </div>
-            <div class="form-group" style="grid-column: span 3;">
                 <label for="address">Company Address</label>
                 <input type="text" id="address" placeholder="e.g. 500 Automotive Way, Detroit, MI">
             </div>
@@ -291,7 +312,6 @@
                 <th>Contact Person</th>
                 <th>Phone</th>
                 <th>Email</th>
-                <th>Parts Supplied</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -304,30 +324,116 @@
 </div>
 
 <script>
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+    if (!adminUser) {
+        alert('🔐 Admin access required. Please log in as Admin.');
+        window.location.href = '/store.html';
+    }
+
+    function logoutAdmin() {
+        localStorage.removeItem('adminUser');
+        window.location.href = '/store.html';
+    }
+
     const API_SUPPLIERS = '/api/suppliers';
+
+    function showAlert(msg) {
+        const box = document.getElementById('alertBox');
+        if (msg) {
+            box.innerText = "❌ Error: " + msg;
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setFieldError(fieldId, errorMsg) {
+        const input = document.getElementById(fieldId);
+        const errSpan = document.getElementById(fieldId + '-error');
+        if (!input || !errSpan) return true;
+        if (errorMsg) {
+            input.classList.add('input-error');
+            errSpan.innerText = errorMsg;
+            errSpan.style.display = 'block';
+            return false;
+        } else {
+            input.classList.remove('input-error');
+            errSpan.innerText = '';
+            errSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function validateCompany() {
+        const val = document.getElementById('company').value.trim();
+        if (!val) {
+            return setFieldError('company', 'Company name is required.');
+        }
+        if (/^\d+$/.test(val) || !/[a-zA-Z]/.test(val)) {
+            return setFieldError('company', 'Company name must contain valid words/letters and cannot be purely numeric.');
+        }
+        return setFieldError('company', null);
+    }
+
+    function validateSupplierName() {
+        const val = document.getElementById('supplierName').value.trim();
+        if (val && (/^\d+$/.test(val) || !/[a-zA-Z]/.test(val))) {
+            return setFieldError('supplierName', 'Contact person name must contain valid words/letters and cannot be purely numeric.');
+        }
+        return setFieldError('supplierName', null);
+    }
+
+    function validateEmail() {
+        const val = document.getElementById('email').value.trim();
+        if (!val) {
+            return setFieldError('email', 'Email address is required.');
+        }
+        if (!val.includes('@')) {
+            return setFieldError('email', 'Invalid email address format. Must contain "@".');
+        }
+        return setFieldError('email', null);
+    }
+
+    function validatePhone() {
+        const val = document.getElementById('phone').value.trim();
+        if (!val) {
+            return setFieldError('phone', 'Phone number is required.');
+        }
+        if (/[a-zA-Z]/.test(val)) {
+            return setFieldError('phone', 'Invalid phone number! Phone number cannot contain letters.');
+        }
+        const digits = val.replace(/\D/g, '');
+        if (digits.length !== 10) {
+            return setFieldError('phone', 'Phone number must contain exactly 10 digits (e.g. 0771234567).');
+        }
+        return setFieldError('phone', null);
+    }
 
     // --- 1. CREATE SUPPLIER ---
     function createSupplier() {
+        showAlert(null);
+        const isCompanyValid = validateCompany();
+        const isSupplierNameValid = validateSupplierName();
+        const isEmailValid = validateEmail();
+        const isPhoneValid = validatePhone();
+
+        if (!isCompanyValid || !isSupplierNameValid || !isEmailValid || !isPhoneValid) {
+            showAlert("Please correct the highlighted errors before submitting!");
+            return;
+        }
+
         const supplierName = document.getElementById('supplierName').value;
         const company = document.getElementById('company').value;
         const phone = document.getElementById('phone').value;
         const email = document.getElementById('email').value;
-        const status = document.getElementById('status').value;
-        const partsSupplied = document.getElementById('partsSupplied').value;
         const address = document.getElementById('address').value;
-
-        if (!supplierName || !company || !phone || !email) {
-            alert("Please fill in all required fields!");
-            return;
-        }
 
         const payload = {
             supplierName: supplierName,
             company: company,
             phone: phone,
             email: email,
-            status: status,
-            partsSupplied: partsSupplied,
+            status: "Active",
             address: address
         };
 
@@ -336,13 +442,19 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || "Failed to register supplier");
+            }
+            return data;
+        })
         .then(data => {
             alert(`✅ Supplier #${data.supplierId} ("${data.company}") registered successfully!`);
             clearForm();
             loadSuppliers();
         })
-        .catch(err => alert("Error registering supplier: " + err));
+        .catch(err => showAlert(err.message));
     }
 
     function clearForm() {
@@ -350,8 +462,11 @@
         document.getElementById('company').value = '';
         document.getElementById('phone').value = '';
         document.getElementById('email').value = '';
-        document.getElementById('partsSupplied').value = '';
         document.getElementById('address').value = '';
+        setFieldError('company', null);
+        setFieldError('email', null);
+        setFieldError('phone', null);
+        showAlert(null);
     }
 
     // --- 2. READ SUPPLIERS ---
@@ -363,26 +478,26 @@
             tbody.innerHTML = '';
 
             if (suppliers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No suppliers registered yet. Register one above!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No suppliers registered yet. Register one above!</td></tr>';
                 return;
             }
 
             suppliers.forEach(supp => {
                 const tr = document.createElement('tr');
-                const statusBadgeClass = supp.status === 'Inactive' ? 'badge-inactive' : 'badge-active';
+
+                const actionColHtml = isCanEdit ? `
+                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supp.supplierId}, '${(supp.company || '').replace(/'/g, "\\'")}', '${(supp.phone || '').replace(/'/g, "\\'")}', '${(supp.email || '').replace(/'/g, "\\'")}')">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supp.supplierId})">🗑️ Delete</button>
+                ` : `<span class="badge" style="background:#e2e8f0; color:#64748b; font-weight:600;">🔒 View Only</span>`;
 
                 tr.innerHTML = `
                     <td><strong>#${supp.supplierId}</strong></td>
                     <td><strong>${supp.company}</strong></td>
-                    <td>${supp.supplierName}</td>
+                    <td>${supp.supplierName || 'N/A'}</td>
                     <td>${supp.phone}</td>
                     <td>${supp.email}</td>
-                    <td>${supp.partsSupplied || 'General Spare Parts'}</td>
-                    <td><span class="badge ${statusBadgeClass}">${supp.status || 'Active'}</span></td>
-                    <td class="actions-cell">
-                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supp.supplierId}, '${supp.company}', '${supp.phone}', '${supp.email}', '${supp.status || 'Active'}', '${supp.partsSupplied || ''}')">✏️ Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supp.supplierId})">🗑️ Delete</button>
-                    </td>
+                    <td><span class="badge badge-active">${supp.status || 'Active'}</span></td>
+                    <td class="actions-cell">${actionColHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -390,24 +505,17 @@
     }
 
     // --- 3. UPDATE SUPPLIER ---
-    function editSupplier(id, currentCompany, currentPhone, currentEmail, currentStatus, currentParts) {
+    function editSupplier(id, currentCompany, currentPhone, currentEmail) {
         const newPhone = prompt(`Update Phone for ${currentCompany} (#${id}):`, currentPhone);
         if (newPhone === null) return;
 
         const newEmail = prompt(`Update Email for ${currentCompany} (#${id}):`, currentEmail);
         if (newEmail === null) return;
 
-        const newStatus = prompt(`Update Status for ${currentCompany} (#${id}) (Active / Inactive):`, currentStatus);
-        if (newStatus === null) return;
-
-        const newParts = prompt(`Update Parts Supplied for ${currentCompany} (#${id}):`, currentParts);
-        if (newParts === null) return;
-
         const payload = {
             phone: newPhone,
             email: newEmail,
-            status: newStatus,
-            partsSupplied: newParts
+            status: "Active"
         };
 
         fetch(`${API_SUPPLIERS}/${id}`, {
@@ -434,8 +542,40 @@
         });
     }
 
-    // Load supplier table on page start
-    window.onload = loadSuppliers;
+    const isCanEdit = ['ADMIN', 'INVENTORY_STAFF'].includes(adminUser.role || 'ADMIN');
+
+    // Load supplier table and attach real-time input listeners
+    window.onload = function() {
+        if (adminUser) {
+            const greeting = document.getElementById('adminUserGreeting');
+            if (greeting) greeting.innerText = '👤 ' + (adminUser.fullName || adminUser.username) + ' (' + (adminUser.role || 'ADMIN') + ')';
+        }
+
+        if (!isCanEdit) {
+            // Display Read-Only Notice
+            const container = document.querySelector('.container');
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;';
+            banner.innerHTML = `<span>ℹ️ <strong>Read-Only View:</strong> Logged in as <u>${adminUser.fullName || adminUser.username}</u> (${adminUser.role}). Supplier registration and updates are restricted to Admin & Inventory Staff.</span><span style="background: #dbeafe; padding: 4px 10px; border-radius: 12px; font-size: 12px;">READ ONLY</span>`;
+            container.insertBefore(banner, container.children[1]);
+
+            // Hide Create Form Card
+            const cards = document.querySelectorAll('.card');
+            if (cards.length > 0) cards[0].style.display = 'none';
+        }
+
+        loadSuppliers();
+        ['input', 'keyup', 'blur', 'change'].forEach(evt => {
+            const phone = document.getElementById('phone');
+            if (phone) phone.addEventListener(evt, validatePhone);
+            const company = document.getElementById('company');
+            if (company) company.addEventListener(evt, validateCompany);
+            const supplierName = document.getElementById('supplierName');
+            if (supplierName) supplierName.addEventListener(evt, validateSupplierName);
+            const email = document.getElementById('email');
+            if (email) email.addEventListener(evt, validateEmail);
+        });
+    };
 </script>
 
 </body>

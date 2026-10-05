@@ -14,25 +14,49 @@ public class Warranty {
     private Long saleId;
     private Long customerId;
     private Long sparePartId;
+    private Long supplierId;
+    private Integer warrantyPeriodYears;
     private LocalDateTime startDate;
     private LocalDateTime expiryDate;
-    private String warrantyStatus; // Active, Expired, Void
+    private String warrantyStatus; // Active, Void
     private String claimDescription;
-    private String claimStatus; // No Claim, Claim Pending, Approved, Rejected, Resolved
+    private String claimStatus; // No Claim, Claimed, Claim Pending, Approved, Rejected, Resolved
+    private Integer itemQuantity; // Total quantity of items bought in the sale
+    private Integer unitNumber; // Specific unit number (e.g. 1 of 2, 2 of 2)
 
     public Warranty() {
     }
 
-    public Warranty(Long warrantyId, Long saleId, Long customerId, Long sparePartId, LocalDateTime startDate, LocalDateTime expiryDate, String warrantyStatus, String claimDescription, String claimStatus) {
+    public Warranty(Long warrantyId, Long saleId, Long customerId, Long sparePartId, Long supplierId, Integer warrantyPeriodYears, LocalDateTime startDate, LocalDateTime expiryDate, String warrantyStatus, String claimDescription, String claimStatus) {
         this.warrantyId = warrantyId;
         this.saleId = saleId;
         this.customerId = customerId;
         this.sparePartId = sparePartId;
+        this.supplierId = supplierId;
+        this.warrantyPeriodYears = warrantyPeriodYears;
         this.startDate = startDate;
         this.expiryDate = expiryDate;
         this.warrantyStatus = warrantyStatus;
         this.claimDescription = claimDescription;
         this.claimStatus = claimStatus;
+        this.itemQuantity = 1;
+        this.unitNumber = 1;
+    }
+
+    public Warranty(Long warrantyId, Long saleId, Long customerId, Long sparePartId, Long supplierId, Integer warrantyPeriodYears, LocalDateTime startDate, LocalDateTime expiryDate, String warrantyStatus, String claimDescription, String claimStatus, Integer itemQuantity, Integer unitNumber) {
+        this.warrantyId = warrantyId;
+        this.saleId = saleId;
+        this.customerId = customerId;
+        this.sparePartId = sparePartId;
+        this.supplierId = supplierId;
+        this.warrantyPeriodYears = warrantyPeriodYears;
+        this.startDate = startDate;
+        this.expiryDate = expiryDate;
+        this.warrantyStatus = warrantyStatus;
+        this.claimDescription = claimDescription;
+        this.claimStatus = claimStatus;
+        this.itemQuantity = itemQuantity;
+        this.unitNumber = unitNumber;
     }
 
     public Long getWarrantyId() {
@@ -65,6 +89,22 @@ public class Warranty {
 
     public void setSparePartId(Long sparePartId) {
         this.sparePartId = sparePartId;
+    }
+
+    public Long getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public Integer getWarrantyPeriodYears() {
+        return warrantyPeriodYears;
+    }
+
+    public void setWarrantyPeriodYears(Integer warrantyPeriodYears) {
+        this.warrantyPeriodYears = warrantyPeriodYears;
     }
 
     public LocalDateTime getStartDate() {
@@ -105,5 +145,21 @@ public class Warranty {
 
     public void setClaimStatus(String claimStatus) {
         this.claimStatus = claimStatus;
+    }
+
+    public Integer getItemQuantity() {
+        return itemQuantity != null && itemQuantity > 0 ? itemQuantity : 1;
+    }
+
+    public void setItemQuantity(Integer itemQuantity) {
+        this.itemQuantity = itemQuantity;
+    }
+
+    public Integer getUnitNumber() {
+        return unitNumber != null && unitNumber > 0 ? unitNumber : 1;
+    }
+
+    public void setUnitNumber(Integer unitNumber) {
+        this.unitNumber = unitNumber;
     }
 }
