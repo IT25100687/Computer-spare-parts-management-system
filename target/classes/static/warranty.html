@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warranty Management - Spare Parts System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background-color: #0f172a;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-active { background: #dcfce7; color: #166534; }
+        .badge-expired { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-resolved { background: #dbeafe; color: #1e40af; }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<div class="navbar">
+    <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
+    <div class="navbar-nav">
+        <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
+        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/inventory.html" class="nav-link">📦 Inventory</a>
+        <a href="/customer.html" class="nav-link">👥 Customers</a>
+        <a href="/supplier.html" class="nav-link">🏭 Suppliers</a>
+        <a href="/warranty.html" class="nav-link active">🛡️ Warranty</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🛡️ Warranty Management & Claims</h1>
+    </div>
+
+    <!-- REGISTER WARRANTY / CLAIM FORM (CREATE) -->
+    <div class="card">
+        <h2>➕ Register Warranty / File Claim</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="saleId">Sale ID</label>
+                <input type="number" id="saleId" placeholder="e.g. 1" required>
+            </div>
+            <div class="form-group">
+                <label for="customerId">Customer ID</label>
+                <input type="number" id="customerId" placeholder="e.g. 101" required>
+            </div>
+            <div class="form-group">
+                <label for="sparePartId">Spare Part ID</label>
+                <input type="number" id="sparePartId" placeholder="e.g. 501" required>
+            </div>
+            <div class="form-group">
+                <label for="warrantyStatus">Warranty Status</label>
+                <select id="warrantyStatus">
+                    <option value="Active">Active</option>
+                    <option value="Expired">Expired</option>
+                    <option value="Void">Void</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="claimStatus">Claim Status</label>
+                <select id="claimStatus">
+                    <option value="No Claim">No Claim</option>
+                    <option value="Claim Pending">Claim Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="claimDescription">Claim Description / Issue Details</label>
+                <input type="text" id="claimDescription" placeholder="e.g. Part defective upon installation, customer requesting replacement">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="createWarranty()">+ Save Warranty / Record Claim</button>
+    </div>
+
+    <!-- WARRANTIES LIST TABLE (READ, UPDATE, DELETE) -->
+    <div class="card">
+        <h2>
+            📋 Active Warranties & Customer Claims List
+            <button class="btn btn-primary btn-sm" onclick="loadWarranties()">🔄 Refresh</button>
+        </h2>
+        <table id="warrantiesTable">
+            <thead>
+            <tr>
+                <th>Warranty ID</th>
+                <th>Sale ID</th>
+                <th>Customer ID</th>
+                <th>Spare Part ID</th>
+                <th>Start Date</th>
+                <th>Expiry Date</th>
+                <th>Warranty Status</th>
+                <th>Claim Status</th>
+                <th>Claim Details</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_WARRANTIES = '/api/warranties';
+
+    // --- 1. CREATE WARRANTY ---
+    function createWarranty() {
+        const saleId = document.getElementById('saleId').value;
+        const customerId = document.getElementById('customerId').value;
+        const sparePartId = document.getElementById('sparePartId').value;
+        const warrantyStatus = document.getElementById('warrantyStatus').value;
+        const claimStatus = document.getElementById('claimStatus').value;
+        const claimDescription = document.getElementById('claimDescription').value;
+
+        if (!saleId || !customerId || !sparePartId) {
+            alert("Please fill in Sale ID, Customer ID, and Spare Part ID!");
+            return;
+        }
+
+        const payload = {
+            saleId: parseInt(saleId),
+            customerId: parseInt(customerId),
+            sparePartId: parseInt(sparePartId),
+            warrantyStatus: warrantyStatus,
+            claimStatus: claimStatus,
+            claimDescription: claimDescription
+        };
+
+        fetch(API_WARRANTIES, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(`✅ Warranty #${data.warrantyId} registered successfully!`);
+            clearForm();
+            loadWarranties();
+        })
+        .catch(err => alert("Error saving warranty: " + err));
+    }
+
+    function clearForm() {
+        document.getElementById('saleId').value = '';
+        document.getElementById('customerId').value = '';
+        document.getElementById('sparePartId').value = '';
+        document.getElementById('claimDescription').value = '';
+    }
+
+    // --- 2. READ WARRANTIES ---
+    function loadWarranties() {
+        fetch(API_WARRANTIES)
+        .then(res => res.json())
+        .then(warranties => {
+            const tbody = document.querySelector('#warrantiesTable tbody');
+            tbody.innerHTML = '';
+
+            if (warranties.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-msg">No warranty records found. Register one above!</td></tr>';
+                return;
+            }
+
+            warranties.forEach(war => {
+                const tr = document.createElement('tr');
+                const statusBadgeClass = war.warrantyStatus === 'Expired' ? 'badge-expired' : 'badge-active';
+                const claimBadgeClass = war.claimStatus === 'Claim Pending' ? 'badge-pending' :
+                                        war.claimStatus === 'Resolved' ? 'badge-resolved' : 'badge-active';
+                const startDateStr = war.startDate ? new Date(war.startDate).toLocaleDateString() : 'N/A';
+                const expiryDateStr = war.expiryDate ? new Date(war.expiryDate).toLocaleDateString() : 'N/A';
+
+                tr.innerHTML = `
+                    <td><strong>#${war.warrantyId}</strong></td>
+                    <td>Sale-#${war.saleId}</td>
+                    <td>Cust-#${war.customerId}</td>
+                    <td>Part-#${war.sparePartId}</td>
+                    <td>${startDateStr}</td>
+                    <td>${expiryDateStr}</td>
+                    <td><span class="badge ${statusBadgeClass}">${war.warrantyStatus || 'Active'}</span></td>
+                    <td><span class="badge ${claimBadgeClass}">${war.claimStatus || 'No Claim'}</span></td>
+                    <td>${war.claimDescription || 'None'}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-warning btn-sm" onclick="editWarranty(${war.warrantyId}, '${war.warrantyStatus || 'Active'}', '${war.claimStatus || 'No Claim'}', '${war.claimDescription || ''}')">✏️ Edit Claim</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteWarranty(${war.warrantyId})">🗑️ Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // --- 3. UPDATE WARRANTY / CLAIM ---
+    function editWarranty(id, currentWarrantyStatus, currentClaimStatus, currentDesc) {
+        const newWarrantyStatus = prompt(`Update Warranty Status for #${id} (Active, Expired, Void):`, currentWarrantyStatus);
+        if (newWarrantyStatus === null) return;
+
+        const newClaimStatus = prompt(`Update Claim Status for #${id} (No Claim, Claim Pending, Approved, Rejected, Resolved):`, currentClaimStatus);
+        if (newClaimStatus === null) return;
+
+        const newDesc = prompt(`Update Claim Description for #${id}:`, currentDesc);
+        if (newDesc === null) return;
+
+        const payload = {
+            warrantyStatus: newWarrantyStatus,
+            claimStatus: newClaimStatus,
+            claimDescription: newDesc
+        };
+
+        fetch(`${API_WARRANTIES}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Warranty #${id} updated successfully!`);
+            loadWarranties();
+        });
+    }
+
+    // --- 4. DELETE WARRANTY ---
+    function deleteWarranty(id) {
+        if (!confirm(`Are you sure you want to delete Warranty record #${id}?`)) return;
+
+        fetch(`${API_WARRANTIES}/${id}`, { method: 'DELETE' })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadWarranties();
+        });
+    }
+
+    // Load warranties table on page start
+    window.onload = loadWarranties;
+</script>
+
+</body>
+</html>

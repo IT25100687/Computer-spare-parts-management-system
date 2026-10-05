@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management - Spare Parts System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background-color: #0f172a;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background-color: #1e293b;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 26px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-active { background: #dcfce7; color: #166534; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: var(--text-light);
+            padding: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<div class="navbar">
+    <a href="/parts.html" class="navbar-brand">💻 Computer Spare Parts Management System</a>
+    <div class="navbar-nav">
+        <a href="/parts.html" class="nav-link">🛠️ Computer Parts</a>
+        <a href="/index.html" class="nav-link">🛒 Sales & Orders</a>
+        <a href="/inventory.html" class="nav-link">📦 Inventory</a>
+        <a href="/customer.html" class="nav-link">👥 Customers</a>
+        <a href="/supplier.html" class="nav-link active">🏭 Suppliers</a>
+        <a href="/warranty.html" class="nav-link">🛡️ Warranty</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🏭 Supplier Management</h1>
+    </div>
+
+    <!-- REGISTER SUPPLIER FORM (CREATE) -->
+    <div class="card">
+        <h2>➕ Register New Supplier</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="supplierName">Contact Person Name</label>
+                <input type="text" id="supplierName" placeholder="e.g. Robert Smith" required>
+            </div>
+            <div class="form-group">
+                <label for="company">Company Name</label>
+                <input type="text" id="company" placeholder="e.g. Bosch Auto Parts Inc." required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" placeholder="e.g. +1-800-555-0199" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="e.g. sales@boschautoparts.com" required>
+            </div>
+            <div class="form-group">
+                <label for="status">Supplier Status</label>
+                <select id="status">
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="partsSupplied">Parts Supplied (Description)</label>
+                <input type="text" id="partsSupplied" placeholder="e.g. Brake pads, Oil filters, Spark plugs">
+            </div>
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="address">Company Address</label>
+                <input type="text" id="address" placeholder="e.g. 500 Automotive Way, Detroit, MI">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="createSupplier()">+ Register Supplier</button>
+    </div>
+
+    <!-- SUPPLIERS LIST TABLE (READ, UPDATE, DELETE) -->
+    <div class="card">
+        <h2>
+            📋 Registered Suppliers List
+            <button class="btn btn-primary btn-sm" onclick="loadSuppliers()">🔄 Refresh</button>
+        </h2>
+        <table id="suppliersTable">
+            <thead>
+            <tr>
+                <th>Supplier ID</th>
+                <th>Company Name</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Parts Supplied</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic data loaded via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_SUPPLIERS = '/api/suppliers';
+
+    // --- 1. CREATE SUPPLIER ---
+    function createSupplier() {
+        const supplierName = document.getElementById('supplierName').value;
+        const company = document.getElementById('company').value;
+        const phone = document.getElementById('phone').value;
+        const email = document.getElementById('email').value;
+        const status = document.getElementById('status').value;
+        const partsSupplied = document.getElementById('partsSupplied').value;
+        const address = document.getElementById('address').value;
+
+        if (!supplierName || !company || !phone || !email) {
+            alert("Please fill in all required fields!");
+            return;
+        }
+
+        const payload = {
+            supplierName: supplierName,
+            company: company,
+            phone: phone,
+            email: email,
+            status: status,
+            partsSupplied: partsSupplied,
+            address: address
+        };
+
+        fetch(API_SUPPLIERS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(`✅ Supplier #${data.supplierId} ("${data.company}") registered successfully!`);
+            clearForm();
+            loadSuppliers();
+        })
+        .catch(err => alert("Error registering supplier: " + err));
+    }
+
+    function clearForm() {
+        document.getElementById('supplierName').value = '';
+        document.getElementById('company').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('partsSupplied').value = '';
+        document.getElementById('address').value = '';
+    }
+
+    // --- 2. READ SUPPLIERS ---
+    function loadSuppliers() {
+        fetch(API_SUPPLIERS)
+        .then(res => res.json())
+        .then(suppliers => {
+            const tbody = document.querySelector('#suppliersTable tbody');
+            tbody.innerHTML = '';
+
+            if (suppliers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No suppliers registered yet. Register one above!</td></tr>';
+                return;
+            }
+
+            suppliers.forEach(supp => {
+                const tr = document.createElement('tr');
+                const statusBadgeClass = supp.status === 'Inactive' ? 'badge-inactive' : 'badge-active';
+
+                tr.innerHTML = `
+                    <td><strong>#${supp.supplierId}</strong></td>
+                    <td><strong>${supp.company}</strong></td>
+                    <td>${supp.supplierName}</td>
+                    <td>${supp.phone}</td>
+                    <td>${supp.email}</td>
+                    <td>${supp.partsSupplied || 'General Spare Parts'}</td>
+                    <td><span class="badge ${statusBadgeClass}">${supp.status || 'Active'}</span></td>
+                    <td class="actions-cell">
+                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supp.supplierId}, '${supp.company}', '${supp.phone}', '${supp.email}', '${supp.status || 'Active'}', '${supp.partsSupplied || ''}')">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supp.supplierId})">🗑️ Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // --- 3. UPDATE SUPPLIER ---
+    function editSupplier(id, currentCompany, currentPhone, currentEmail, currentStatus, currentParts) {
+        const newPhone = prompt(`Update Phone for ${currentCompany} (#${id}):`, currentPhone);
+        if (newPhone === null) return;
+
+        const newEmail = prompt(`Update Email for ${currentCompany} (#${id}):`, currentEmail);
+        if (newEmail === null) return;
+
+        const newStatus = prompt(`Update Status for ${currentCompany} (#${id}) (Active / Inactive):`, currentStatus);
+        if (newStatus === null) return;
+
+        const newParts = prompt(`Update Parts Supplied for ${currentCompany} (#${id}):`, currentParts);
+        if (newParts === null) return;
+
+        const payload = {
+            phone: newPhone,
+            email: newEmail,
+            status: newStatus,
+            partsSupplied: newParts
+        };
+
+        fetch(`${API_SUPPLIERS}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(updated => {
+            alert(`✅ Supplier #${id} updated!`);
+            loadSuppliers();
+        });
+    }
+
+    // --- 4. DELETE SUPPLIER ---
+    function deleteSupplier(id) {
+        if (!confirm(`Are you sure you want to delete Supplier #${id}?`)) return;
+
+        fetch(`${API_SUPPLIERS}/${id}`, { method: 'DELETE' })
+        .then(res => res.text())
+        .then(msg => {
+            alert(msg);
+            loadSuppliers();
+        });
+    }
+
+    // Load supplier table on page start
+    window.onload = loadSuppliers;
+</script>
+
+</body>
+</html>
